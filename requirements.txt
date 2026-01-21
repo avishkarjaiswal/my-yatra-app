@@ -6,3 +6,4 @@ openpyxl
 gunicorn
 reportlab
 python-dotenv
+psycopg2-binary
