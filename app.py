@@ -48,6 +48,11 @@ razorpay_client = razorpay.Client(auth=(API_KEY, API_SECRET))
 
 db.init_app(app)
 
+# Create database tables if they don't exist
+with app.app_context():
+    db.create_all()
+    print("✅ Database tables created successfully!")
+
 # Pricing for package components (in INR)
 PRICING = {
     'hotel': {
