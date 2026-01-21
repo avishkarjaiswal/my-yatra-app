@@ -148,70 +148,95 @@
 {% block scripts %}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-    document.getElementById('razorpay-button').addEventListener('click', function () {
+    // Define the payment function globally so it's easy to access/debug
+    function startPayment() {
+        const button = document.getElementById('razorpay-button');
+        const processingMsg = document.getElementById('processing-message');
+
+        // Disable button to prevent double clicks
+        button.disabled = true;
+
         var options = {
             "key": "{{ razorpay_key }}",
             "amount": {{ total_amount * 100
     }}, // Amount in paise
-        "currency": "INR",
+    "currency": "INR",
         "name": "Dwarka Yatra",
-        "description": "Yatra Registration Payment",
-        "order_id": "{{ order_id }}",
-        "handler": function (response) {
-            // Payment successful - show processing message
-            document.getElementById('razorpay-button').disabled = true;
-            document.getElementById('processing-message').style.display = 'block';
+            "description": "Yatra Registration Payment",
+                "order_id": "{{ order_id }}",
 
-            // Send data to server
-            fetch("{{ url_for('verify_payment') }}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    razorpay_payment_id: response.razorpay_payment_id,
-                    razorpay_order_id: response.razorpay_order_id,
-                    razorpay_signature: response.razorpay_signature,
-                    session_order_ids: "{{ session_order_ids }}"
-                })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Redirect to receipt page
-                        window.location.href = data.redirect_url;
-                    } else {
-                        // Hide processing message and re-enable button on error
-                        document.getElementById('processing-message').style.display = 'none';
-                        document.getElementById('razorpay-button').disabled = false;
-                        alert('Payment verification failed: ' + (data.error || 'Please contact support.'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    // Hide processing message and re-enable button on error
-                    document.getElementById('processing-message').style.display = 'none';
-                    document.getElementById('razorpay-button').disabled = false;
-                    alert('An error occurred. Please try again.');
-                });
-        },
-        "prefill": {
+                    // Payment Success Handler
+                    "handler": function (response) {
+                        // Show processing message immediately
+                        processingMsg.style.display = 'block';
+
+                        // Send payment details to backend for verification
+                        fetch("{{ url_for('verify_payment') }}", {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature,
+                                session_order_ids: "{{ session_order_ids }}"
+                            })
+                        })
+                            .then(response => {
+                                if (!response.ok) throw new Error('Network response was not ok');
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    window.location.href = data.redirect_url;
+                                } else {
+                                    throw new Error(data.error || 'Verification failed');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Payment Verification Error:', error);
+                                processingMsg.style.display = 'none';
+                                button.disabled = false;
+                                alert('Payment successful, but verification failed: ' + error.message + '\nPlease contact support.');
+                            });
+                    },
+
+    // User Information for Razorpay Popup
+    "prefill": {
         "name": "{{ travelers[0].name }}",
-        "email": "{{ travelers[0].email or '' }}",
-        "contact": "{{ travelers[0].phone or '' }}"
+            "email": "{{ travelers[0].email or '' }}",
+                "contact": "{{ travelers[0].phone or '' }}"
     },
-        "theme": {
+
+    // UI Customization
+    "theme": {
         "color": "#198754"
     },
-        "modal": {
+
+    // Handle Payment Cancellation (User closes popup)
+    "modal": {
         "ondismiss": function () {
-            alert('Payment cancelled. You can retry by clicking the payment button again.');
+            button.disabled = false;
+            alert('Payment cancelled via modal close.');
         }
     }
         };
 
+    // Initialize and open Razorpay
     var rzp = new Razorpay(options);
+
+    // Handle failure at initialization level
+    rzp.on('payment.failed', function (response) {
+        button.disabled = false;
+        alert("Payment Failed: " + response.error.description);
+    });
+
     rzp.open();
+    }
+
+    // Attach click event
+    document.getElementById('razorpay-button').addEventListener('click', function (e) {
+        e.preventDefault();
+        startPayment();
     });
 </script>
 {% endblock %}
