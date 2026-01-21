@@ -136,7 +136,7 @@ def generate_receipt_pdf(passengers, total_amount):
     
     for idx, passenger in enumerate(passengers, 1):
         # Header - Title
-        title = Paragraph("🕉 DWARKA YATRA 🕉", title_style)
+        title = Paragraph("DWARKA YATRA", title_style)
         elements.append(title)
         
         subtitle = Paragraph("Registration Receipt", subtitle_style)
@@ -334,7 +334,7 @@ def send_receipt_email(to_email, pdf_buffer, passengers, total_amount, gmail_add
             <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
                     <div style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-                        <h1 style="color: white; margin: 0; font-size: 28px;">🕉 Dwarka Yatra</h1>
+                        <h1 style="color: white; margin: 0; font-size: 28px;">🦚 Dwarka Yatra</h1>
                         <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Registration Confirmed</p>
                     </div>
                     
