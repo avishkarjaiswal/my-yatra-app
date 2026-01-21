@@ -753,10 +753,16 @@ def verify_payment():
             })
 
     except Exception as e:
-        print(f"[ERROR] ❌ Payment verification setup failed: {str(e)}")
+        error_msg = str(e)
+        print(f"[ERROR] ❌ Payment verification failed: {error_msg}")
         import traceback
         traceback.print_exc()
-        return jsonify({'success': False, 'error': str(e)})
+        
+        # Ensure we return valid JSON even if there's an encoding issue
+        try:
+            return jsonify({'success': False, 'error': error_msg}), 500
+        except:
+            return {'success': False, 'error': 'Internal server error'}, 500
 
 
 
