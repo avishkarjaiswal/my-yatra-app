@@ -655,49 +655,55 @@ def verify_payment():
         try:
             db.session.commit()
             
-            # TEMPORARILY DISABLED EMAIL - Testing payment flow
-            print("[INFO] ⚠️ Email sending temporarily disabled for debugging")
-            # Send email receipt after successful payment
-            # try:
-            #     if all_passengers:
-            #         # Calculate total amount
-            #         total_amount = sum(p.amount for p in all_passengers)
-            #         
-            #         # Collect unique email addresses from all passengers
-            #         unique_emails = set()
-            #         for passenger in all_passengers:
-            #             if passenger.email and passenger.email.strip():
-            #                 unique_emails.add(passenger.email.strip().lower())
-            #         
-            #         if unique_emails:
-            #             emails_sent = 0
-            #             
-            #             # Send individual email to each unique email address
-            #             for recipient_email in unique_emails:
-            #                 try:
-            #                     # Generate fresh PDF for each recipient
-            #                     pdf_buffer = generate_receipt_pdf(all_passengers, total_amount)
-            #                     
-            #                     send_receipt_email(
-            #                         to_email=recipient_email,
-            #                         pdf_buffer=pdf_buffer,
-            #                         passengers=all_passengers,
-            #                         total_amount=total_amount,
-            #                         gmail_address=GMAIL_ADDRESS,
-            #                         gmail_app_password=GMAIL_APP_PASSWORD
-            #                     )
-            #                     emails_sent += 1
-            #                 except Exception as individual_email_error:
-            #                     print(f"[ERROR] ❌ Failed to send email to {recipient_email}: {str(individual_email_error)}")
-            #             
-            #             print(f"[INFO] 📧 Sent {emails_sent} individual receipt email(s) to unique travelers")
-            #         else:
-            #             print(f"[WARNING] ⚠️ No email addresses found for travelers, skipping email")
-            # except Exception as email_error:
-            #     # Don't fail the payment if email fails
-            #     print(f"[ERROR] ❌ Email sending failed but payment successful: {str(email_error)}")
-            #     import traceback
-            #     traceback.print_exc()
+            # Send email receipt asynchronously (don't block the response)
+            def send_emails_async():
+                try:
+                    if all_passengers:
+                        # Calculate total amount
+                        total_amount = sum(p.amount for p in all_passengers)
+                        
+                        # Collect unique email addresses from all passengers
+                        unique_emails = set()
+                        for passenger in all_passengers:
+                            if passenger.email and passenger.email.strip():
+                                unique_emails.add(passenger.email.strip().lower())
+                        
+                        if unique_emails:
+                            emails_sent = 0
+                            
+                            # Send individual email to each unique email address
+                            for recipient_email in unique_emails:
+                                try:
+                                    # Generate fresh PDF for each recipient
+                                    pdf_buffer = generate_receipt_pdf(all_passengers, total_amount)
+                                    
+                                    send_receipt_email(
+                                        to_email=recipient_email,
+                                        pdf_buffer=pdf_buffer,
+                                        passengers=all_passengers,
+                                        total_amount=total_amount,
+                                        gmail_address=GMAIL_ADDRESS,
+                                        gmail_app_password=GMAIL_APP_PASSWORD
+                                    )
+                                    emails_sent += 1
+                                except Exception as individual_email_error:
+                                    print(f"[ERROR] ❌ Failed to send email to {recipient_email}: {str(individual_email_error)}")
+                            
+                            print(f"[INFO] 📧 Sent {emails_sent} individual receipt email(s) to unique travelers")
+                        else:
+                            print(f"[WARNING] ⚠️ No email addresses found for travelers, skipping email")
+                except Exception as email_error:
+                    # Don't fail the payment if email fails
+                    print(f"[ERROR] ❌ Email sending failed but payment successful: {str(email_error)}")
+                    import traceback
+                    traceback.print_exc()
+            
+            # Start email sending in background thread
+            import threading
+            email_thread = threading.Thread(target=send_emails_async)
+            email_thread.daemon = True
+            email_thread.start()
+            print("[INFO] 📧 Email sending started in background thread")
             
             
             # Clear session data
