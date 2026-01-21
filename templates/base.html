@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dwarka Yatra{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-transparent fixed-top glassmorphism">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">Dwarka Yatra</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('catalog') }}">Gallery</a></li>
+                    <li class="nav-item"><a class="nav-link btn btn-primary px-4 ms-2 text-white"
+                            href="{{ url_for('register') }}">Register</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="container mt-5 pt-5">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Multi-Step Progress Indicator -->
+    {% block step_indicator %}
+    {% endblock %}
+
+    {% block content %}{% endblock %}
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-0">&copy; 2024 Dwarka Yatra Registration. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Help Widget -->
+    <div class="help-widget">
+        <!-- Help Card (Hidden initially) -->
+        <div class="help-card" id="helpCard">
+            <div class="help-card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-headset"></i> Need Help?
+                </h5>
+                <button class="btn-close btn-close-white" id="closeHelpCard" aria-label="Close"></button>
+            </div>
+            <div class="help-card-body">
+                <p class="mb-3">Having trouble? We're here to help!</p>
+                <div class="contact-info">
+                    <div class="contact-item mb-3">
+                        <i class="bi bi-envelope-fill text-warning"></i>
+                        <div>
+                            <small class="text-muted d-block">Email Us</small>
+                            <a href="mailto:avishkarjaiswal6@gmail.com" class="text-white text-decoration-none">
+                                avishkarjaiswal6@gmail.com
+                            </a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="bi bi-telephone-fill text-warning"></i>
+                        <div>
+                            <small class="text-muted d-block">Call Us</small>
+                            <a href="tel:+919898989898" class="text-white text-decoration-none">
+                                +91 98989 89898
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Button -->
+        <button class="help-button" id="helpButton" title="Need Help?">
+            <i class="bi bi-question-circle-fill"></i>
+        </button>
+    </div>
+
+    <style>
+        /* Multi-Step Progress Indicator Styles */
+        .step-indicator-container {
+            padding: 30px 0;
+            margin-bottom: 20px;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 30px;
+            left: 10%;
+            right: 10%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            z-index: 0;
+        }
+
+        .step-item {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        .step-circle i {
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        .step-number {
+            font-size: 20px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        .step-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 8px;
+            transition: all 0.3s ease;
+        }
+
+        /* Active Step */
+        .step-item.active .step-circle {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            border-color: #ffc107;
+            box-shadow: 0 0 30px rgba(255, 193, 7, 0.6);
+            animation: pulse-glow 2s infinite;
+        }
+
+        .step-item.active .step-circle i,
+        .step-item.active .step-number {
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .step-item.active .step-label {
+            color: #ffc107;
+            font-weight: 700;
+        }
+
+        /* Completed Step */
+        .step-item.completed .step-circle {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border-color: #28a745;
+        }
+
+        .step-item.completed .step-circle i {
+            color: white;
+        }
+
+        .step-item.completed .step-label {
+            color: #28a745;
+        }
+
+        /* Progress Line */
+        .step-item.completed~.step-item::before {
+            background: #28a745;
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 30px rgba(255, 193, 7, 0.6);
+            }
+
+            50% {
+                box-shadow: 0 0 40px rgba(255, 193, 7, 0.9);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .step-indicator {
+                flex-direction: column;
+                gap: 30px;
+            }
+
+            .step-indicator::before {
+                display: none;
+            }
+
+            .step-item::after {
+                content: '';
+                position: absolute;
+                top: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 3px;
+                height: 30px;
+                background: rgba(255, 255, 255, 0.2);
+            }
+
+            .step-item:last-child::after {
+                display: none;
+            }
+
+            .step-item.completed::after {
+                background: #28a745;
+            }
+
+            .step-circle {
+                width: 70px;
+                height: 70px;
+            }
+
+            .step-label {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .step-circle {
+                width: 60px;
+                height: 60px;
+            }
+
+            .step-circle i {
+                font-size: 20px;
+            }
+
+            .step-label {
+                font-size: 13px;
+            }
+        }
+
+        .help-widget {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1050;
+        }
+
+        .help-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            border: none;
+            box-shadow: 0 4px 20px rgba(255, 193, 7, 0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+
+        .help-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(255, 193, 7, 0.6);
+        }
+
+        .help-button i {
+            font-size: 28px;
+            color: white;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 4px 20px rgba(255, 193, 7, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 4px 30px rgba(255, 193, 7, 0.7);
+            }
+        }
+
+        .help-card {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 320px;
+            background: linear-gradient(135deg, rgba(33, 37, 41, 0.98) 0%, rgba(52, 58, 64, 0.98) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .help-card.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .help-card-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .help-card-header h5 {
+            color: #ffc107;
+            font-weight: 600;
+        }
+
+        .help-card-header i {
+            margin-right: 8px;
+        }
+
+        .help-card-body {
+            padding: 20px;
+            color: white;
+        }
+
+        .contact-info {
+            margin-top: 15px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .contact-item i {
+            font-size: 20px;
+            margin-top: 5px;
+        }
+
+        .contact-item a {
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .contact-item a:hover {
+            color: #ffc107 !important;
+        }
+
+        @media (max-width: 576px) {
+            .help-widget {
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .help-card {
+                width: calc(100vw - 40px);
+                right: -10px;
+            }
+
+            .help-button {
+                width: 50px;
+                height: 50px;
+            }
+
+            .help-button i {
+                font-size: 24px;
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const helpButton = document.getElementById('helpButton');
+            const helpCard = document.getElementById('helpCard');
+            const closeHelpCard = document.getElementById('closeHelpCard');
+
+            helpButton.addEventListener('click', function () {
+                helpCard.classList.toggle('show');
+            });
+
+            closeHelpCard.addEventListener('click', function () {
+                helpCard.classList.remove('show');
+            });
+
+            // Close help card when clicking outside
+            document.addEventListener('click', function (event) {
+                if (!helpButton.contains(event.target) && !helpCard.contains(event.target)) {
+                    helpCard.classList.remove('show');
+                }
+            });
+        });
+    </script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

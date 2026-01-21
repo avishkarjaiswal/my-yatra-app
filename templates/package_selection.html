@@ -1,0 +1,1009 @@
+{% extends 'base.html' %}
+
+{% block step_indicator %}
+<div class="step-indicator-container">
+    <div class="container">
+        <div class="step-indicator">
+            <div class="step-item completed">
+                <div class="step-circle">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="step-label">Registration</div>
+            </div>
+            <div class="step-item active">
+                <div class="step-circle">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div class="step-label">Package Selection</div>
+            </div>
+            <div class="step-item">
+                <div class="step-circle">
+                    <i class="bi bi-clipboard-check"></i>
+                </div>
+                <div class="step-label">Review Summary</div>
+            </div>
+            <div class="step-item">
+                <div class="step-circle">
+                    <i class="bi bi-credit-card"></i>
+                </div>
+                <div class="step-label">Payment</div>
+            </div>
+            <div class="step-item">
+                <div class="step-circle">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="step-label">Confirmation</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="py-5 mt-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card glassmorphism p-4 p-md-5">
+                    <!-- Header -->
+                    <div class="text-center mb-5">
+                        <div
+                            style="font-size: 3rem; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(255, 193, 7, 0.5));">
+                            📦
+                        </div>
+                        <h2 class="mb-2" style="font-weight: 700; color: #fff;">Customize Your Package</h2>
+                        <p class="text-white-50 mb-0" style="font-size: 1.1rem;">
+                            🙏 Select journey details for each traveler
+                        </p>
+                        <div
+                            style="width: 100px; height: 2px; background: linear-gradient(90deg, transparent, #ffc107, transparent); margin: 15px auto;">
+                        </div>
+                    </div>
+
+                    <form action="{{ url_for('package_selection') }}" method="POST" id="packageForm">
+                        <!-- Display travelers -->
+                        {% for idx, traveler in travelers.items() %}
+                        <div class="traveler-package-section mb-5" data-idx="{{ idx }}" data-age="{{ traveler.age }}"
+                            data-guardian-id="{{ traveler.guardian_id if traveler.guardian_id else '' }}">
+                            <div class="p-4 rounded mb-4"
+                                style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.2);">
+                                <h5 class="mb-4" style="color: #ffc107;">
+                                    <i class="bi bi-person-badge"></i>
+                                    {{ traveler.name }}
+                                    <small class="text-white-50" style="font-size: 0.9rem;">
+                                        ({{ traveler.age }} yrs, {{ traveler.gender }})
+                                    </small>
+                                </h5>
+
+                                {% if traveler.age <= 10 and traveler.guardian_name %} <!-- Child Notice - Package will
+                                    match guardian -->
+                                    <div class="alert alert-info mb-4"
+                                        style="background: rgb(235, 225, 225); border: 1px solid rgba(13, 202, 240, 0.3);">
+                                        <i class="bi bi-info-circle-fill"></i>
+                                        <strong>Child Traveler:</strong> Package selections will automatically match
+                                        <strong>{{ traveler.guardian_name }}</strong>'s package.
+                                        <br><small>Hotel, food, and travel options will be the same as the
+                                            guardian.</small>
+                                    </div>
+                                    {% endif %}
+
+                                    <!-- Journey Dates -->
+                                    <div class="row g-3 mb-4">
+                                        <div class="col-md-6">
+                                            <label class="form-label">
+                                                <i class="bi bi-calendar-check"></i> Journey Start Date *
+                                            </label>
+                                            <input type="date" name="start_date_{{ idx }}"
+                                                class="form-control start-date" data-idx="{{ idx }}" min="2026-01-31"
+                                                max="2026-02-05" value="2026-01-31" required {% if traveler.age <=10
+                                                %}disabled{% endif %}>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">
+                                                <i class="bi bi-calendar-x"></i> Journey End Date *
+                                            </label>
+                                            <input type="date" name="end_date_{{ idx }}" class="form-control end-date"
+                                                data-idx="{{ idx }}" min="2026-01-31" max="2026-02-05"
+                                                value="2026-02-05" required {% if traveler.age <=10 %}disabled{% endif
+                                                %}>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="alert alert-info" id="days_{{ idx }}" style="display:none;">
+                                                <i class="bi bi-info-circle"></i> <strong>Duration:</strong> <span
+                                                    id="days_text_{{ idx }}"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Hotel Selection -->
+                                    <div class="mb-4">
+                                        <label class="form-label mb-3">
+                                            <i class="bi bi-building"></i> Hotel Category *
+                                        </label>
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <input type="radio" class="btn-check hotel-radio" name="hotel_{{ idx }}"
+                                                    id="basic_{{ idx }}" value="basic" data-idx="{{ idx }}"
+                                                    data-price="{{ pricing.hotel.basic }}" checked {% if traveler.age
+                                                    <=10 %}disabled{% endif %}>
+                                                <label class="btn btn-outline-light w-100 p-3" for="basic_{{ idx }}">
+                                                    <span class="package-icon">🏨</span>
+                                                    <strong style="font-size: 1.1rem;">Basic</strong><br>
+                                                    <span
+                                                        style="color: #ffc107; font-size: 1.3rem; font-weight: 700;">₹{{
+                                                        pricing.hotel.basic }}/day</span><br>
+                                                    <small style="color: rgba(255, 255, 255, 0.6);">Essential
+                                                        comfort</small>
+                                                </label>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <input type="radio" class="btn-check hotel-radio" name="hotel_{{ idx }}"
+                                                    id="standard_{{ idx }}" value="standard" data-idx="{{ idx }}"
+                                                    data-price="{{ pricing.hotel.standard }}" {% if traveler.age <=10
+                                                    %}disabled{% endif %}>
+                                                <label class="btn btn-outline-light w-100 p-3" for="standard_{{ idx }}">
+                                                    <span class="package-icon">🏨</span>
+                                                    <strong style="font-size: 1.1rem;">Standard</strong><br>
+                                                    <span
+                                                        style="color: #ffc107; font-size: 1.3rem; font-weight: 700;">₹{{
+                                                        pricing.hotel.standard }}/day</span><br>
+                                                    <small style="color: rgba(255, 255, 255, 0.6);">Enhanced
+                                                        comfort</small>
+                                                </label>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <input type="radio" class="btn-check hotel-radio" name="hotel_{{ idx }}"
+                                                    id="premium_{{ idx }}" value="premium" data-idx="{{ idx }}"
+                                                    data-price="{{ pricing.hotel.premium }}" {% if traveler.age <=10
+                                                    %}disabled{% endif %}>
+                                                <label class="btn btn-outline-light w-100 p-3" for="premium_{{ idx }}">
+                                                    <span class="package-icon">🏨</span>
+                                                    <strong style="font-size: 1.1rem;">Premium</strong><br>
+                                                    <span
+                                                        style="color: #ffc107; font-size: 1.3rem; font-weight: 700;">₹{{
+                                                        pricing.hotel.premium }}/day</span><br>
+                                                    <small style="color: rgba(255, 255, 255, 0.6);">Luxury
+                                                        experience</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Food (Display Only) -->
+                                    <div class="mb-4 p-3 rounded"
+                                        style="background: rgba(40, 167, 69, 0.1); border: 1px solid rgba(40, 167, 69, 0.3);">
+                                        <label class="form-label">
+                                            <i class="bi bi-egg-fried"></i> Food Package
+                                        </label>
+                                        <div class="text-white">
+                                            <strong>Premium Food</strong> - ₹{{ pricing.food }}/day
+                                            <small class="text-white-50 d-block">Delicious meals included
+                                                (Fixed)</small>
+                                        </div>
+                                    </div>
+
+                                    <!-- OTM Membership with Verification -->
+                                    <div class="mb-4">
+                                        <label class="form-label">
+                                            <i class="bi bi-card-checklist"></i> Do you have One Time Membership (OTM)?
+                                        </label>
+                                        <div class="mb-2">
+                                            <input type="radio" class="btn-check" name="otm_{{ idx }}"
+                                                id="otm_no_{{ idx }}" value="no" data-idx="{{ idx }}" checked {% if
+                                                traveler.age <=10 %}disabled{% endif %}>
+                                            <label class="btn btn-outline-light me-2" for="otm_no_{{ idx }}">
+                                                No
+                                            </label>
+                                            <input type="radio" class="btn-check otm-radio" name="otm_{{ idx }}"
+                                                id="otm_yes_{{ idx }}" value="yes" data-idx="{{ idx }}" {% if
+                                                traveler.age <=10 %}disabled{% endif %}>
+                                            <label class="btn btn-outline-light" for="otm_yes_{{ idx }}">
+                                                Yes
+                                            </label>
+                                        </div>
+
+                                        <!-- OTM Verification Field (Hidden by default) -->
+                                        <div id="otm_field_{{ idx }}" style="display:none;">
+                                            <div class="input-group mb-2">
+                                                <input type="text" name="otm_id_{{ idx }}" id="otm_code_{{ idx }}"
+                                                    class="form-control" placeholder="Enter OTM ID">
+                                                <button type="button" class="btn btn-warning verify-otm-btn"
+                                                    data-idx="{{ idx }}">
+                                                    <i class="bi bi-shield-check"></i> Verify
+                                                </button>
+                                            </div>
+                                            <!-- Verification Status -->
+                                            <div id="otm_status_{{ idx }}" style="display:none;"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Travel Medium with Enable Option -->
+                                    <div class="mb-4">
+                                        <label class="form-label">
+                                            <i class="bi bi-train-front"></i> Travel Booking
+                                        </label>
+                                        <div class="form-check form-switch mb-3">
+                                            <input class="form-check-input travel-enable" type="checkbox"
+                                                id="travel_enable_{{ idx }}" data-idx="{{ idx }}" disabled>
+                                            <label class="form-check-label text-white" for="travel_enable_{{ idx }}">
+                                                Book Travel with us (Delhi to Dwarka)
+                                            </label>
+                                            <small class="d-block text-warning mt-1" id="travel_lock_msg_{{ idx }}">
+                                                {% if traveler.age <= 10 %} <i class="bi bi-lock-fill"></i> Travel will
+                                                    match guardian's selection
+                                                    {% else %}
+                                                    <i class="bi bi-lock-fill"></i> Verify OTM to unlock travel booking
+                                                    {% endif %}
+                                            </small>
+                                        </div>
+
+                                        <!-- Travel options (disabled by default) -->
+                                        <select name="travel_{{ idx }}" class="form-select travel-select"
+                                            data-idx="{{ idx }}" disabled id="travel_select_{{ idx }}">
+                                            <option value="self" data-price="0">Self Travel (No Cost)</option>
+                                            <option value="train" data-price="0">Train (Pay Later)</option>
+                                            <option value="flight" data-price="0">Flight (Pay Later)</option>
+                                        </select>
+
+                                        <!-- Travel Info (Hidden by default) -->
+                                        <div class="mt-2" id="travel_info_{{ idx }}" style="display:none;">
+                                        </div>
+                                    </div>
+
+                                    <!-- Price Breakdown -->
+                                    <div class="mt-4 p-3 rounded"
+                                        style="background: rgba(255, 193, 7, 0.15); border: 1px solid rgba(255, 193, 7, 0.3);">
+                                        <h6 class="text-warning mb-3"><i class="bi bi-calculator"></i> Price Breakdown
+                                        </h6>
+                                        <div class="row g-2 text-white-50" id="breakdown_{{ idx }}">
+                                            <div class="col-12">
+                                                <small>Select dates and options to see pricing</small>
+                                            </div>
+                                        </div>
+                                        <hr style="border-color: rgba(255, 193, 7, 0.3);">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <strong class="text-white">Total for {{ traveler.name }}:</strong>
+                                            <strong class="text-warning" style="font-size: 1.5rem;"
+                                                id="traveler_total_{{ idx }}">₹0</strong>
+                                        </div>
+                                    </div>
+                            </div>
+                            {% endfor %}
+
+                            <!-- Grand Total -->
+                            <div class="d-flex justify-content-end align-items-center mb-3 mt-4 p-4 rounded"
+                                style="background: linear-gradient(135deg, rgba(255, 193, 7, 0.2) 0%, rgba(255, 127, 95, 0.2) 100%); border: 2px solid rgba(255, 193, 7, 0.4);">
+                                <h4 class="mb-0">
+                                    <span style="color: #fff;">Grand Total:</span>
+                                    <span id="grandTotal" class="text-warning"
+                                        style="font-size: 2rem; font-weight: 700; margin-left: 15px;">₹0</span>
+                                </h4>
+                            </div>
+
+                            <!-- Navigation Buttons -->
+                            <div class="row g-3 mt-2">
+                                <div class="col-md-6">
+                                    <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg w-100"
+                                        style="padding: 15px; font-size: 1.2rem; font-weight: 600;">
+                                        <i class="bi bi-arrow-left-circle"></i> Back to Registration
+                                    </a>
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="submit" class="btn btn-success btn-lg w-100"
+                                        style="padding: 15px; font-size: 1.2rem; font-weight: 600;">
+                                        <i class="bi bi-credit-card"></i> Proceed to Payment
+                                    </button>
+                                </div>
+                            </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .traveler-package-section {
+        transition: all 0.3s ease;
+    }
+
+    .traveler-package-section:hover {
+        transform: translateY(-2px);
+    }
+
+    .package-icon {
+        font-size: 2rem;
+        margin-bottom: 8px;
+        display: block;
+        filter: drop-shadow(0 2px 8px rgba(255, 193, 7, 0.3));
+    }
+
+    .btn-outline-light {
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        background: rgba(0, 0, 0, 0.2);
+        color: white;
+        transition: all 0.3s ease;
+        border-radius: 12px;
+    }
+
+    .btn-outline-light:hover {
+        border-color: rgba(255, 193, 7, 0.5);
+        background: rgba(255, 193, 7, 0.1);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-check:checked+.btn-outline-light {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.3) 0%, rgba(255, 127, 95, 0.3) 100%);
+        border-color: #ffc107;
+        color: white;
+        box-shadow: 0 8px 25px rgba(255, 193, 7, 0.3);
+        transform: scale(1.02);
+    }
+
+    .form-control,
+    .form-select {
+        background-color: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 8px;
+        padding: 12px 15px;
+    }
+
+    .form-select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
+        appearance: none;
+        /* Ensure native appearance is overridden */
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background-color: rgba(0, 0, 0, 0.4);
+        border-color: #ffc107;
+        box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.15);
+        color: white;
+    }
+
+    .form-control:disabled {
+        background-color: rgba(0, 0, 0, 0.4) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        color: rgba(255, 255, 255, 0.9) !important;
+        cursor: not-allowed;
+        opacity: 1;
+    }
+
+    /* Large Switch Styling */
+    .form-check.form-switch .form-check-input.travel-enable {
+        width: 3.5rem;
+        height: 1.75rem;
+        cursor: pointer;
+        margin-top: 0;
+    }
+
+    .form-check.form-switch {
+        min-height: 2rem;
+        display: flex;
+        align-items: center;
+        padding-left: 0;
+        /* custom layout */
+    }
+
+    .form-check.form-switch .form-check-input {
+        margin-left: 0;
+        margin-right: 15px;
+        float: none;
+    }
+
+    .form-check.form-switch .form-check-label {
+        font-size: 1.1rem;
+        cursor: pointer;
+    }
+
+    .form-select option {
+        background: #1a1a2e;
+        color: white;
+    }
+
+    .form-select:disabled {
+        background: rgba(0, 0, 0, 0.4) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+        cursor: not-allowed;
+        opacity: 1;
+    }
+
+    .form-label {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .form-check-input {
+        background-color: rgba(0, 0, 0, 0.3);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .form-check-input:checked {
+        background-color: #ffc107;
+        border-color: #ffc107;
+    }
+
+    .form-check-label {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 6px 25px rgba(40, 167, 69, 0.4);
+        transition: all 0.3s ease;
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(40, 167, 69, 0.6);
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        border: none;
+        color: #000;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-warning:hover:not(:disabled) {
+        background: linear-gradient(135deg, #ffca28 0%, #ffa726 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+    }
+
+    .btn-warning:disabled {
+        background: #28a745;
+        color: white;
+        opacity: 1;
+    }
+
+    .otm-valid {
+        color: #28a745 !important;
+        border-color: #28a745 !important;
+    }
+
+    .otm-invalid {
+        color: #dc3545 !important;
+        border-color: #dc3545 !important;
+    }
+
+    /* OTM Input Field Styling */
+    input[name^="otm_id_"],
+    #otm_code_0,
+    #otm_code_1,
+    #otm_code_2,
+    #otm_code_3,
+    #otm_code_4,
+    #otm_code_5 {
+        background: rgba(255, 255, 255, 0.15) !important;
+        border: 2px solid rgba(255, 193, 7, 0.4) !important;
+        color: white !important;
+        font-weight: 600 !important;
+    }
+
+    input[name^="otm_id_"]::placeholder,
+    #otm_code_0::placeholder,
+    #otm_code_1::placeholder,
+    #otm_code_2::placeholder,
+    #otm_code_3::placeholder,
+    #otm_code_4::placeholder,
+    #otm_code_5::placeholder {
+        color: rgba(255, 255, 255, 0.7) !important;
+        font-weight: 500 !important;
+    }
+
+    input[name^="otm_id_"]:focus,
+    #otm_code_0:focus,
+    #otm_code_1:focus,
+    #otm_code_2:focus,
+    #otm_code_3:focus,
+    #otm_code_4:focus,
+    #otm_code_5:focus {
+        background: rgba(255, 255, 255, 0.2) !important;
+        border-color: #ffc107 !important;
+        color: white !important;
+    }
+
+    input[name^="otm_id_"]:disabled {
+        background: rgba(40, 167, 69, 0.2) !important;
+        border-color: rgba(40, 167, 69, 0.5) !important;
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    @keyframes pulse-gold-border {
+        0% {
+            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+            border-color: rgba(255, 193, 7, 0.8);
+        }
+
+        70% {
+            box-shadow: 0 0 0 10px rgba(255, 193, 7, 0);
+            border-color: rgba(255, 193, 7, 0.3);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+            border-color: rgba(255, 193, 7, 0.8);
+        }
+    }
+
+    .attention-grabber {
+        animation: pulse-gold-border 2s infinite;
+        border: 2px solid #ffc107 !important;
+        background-color: rgba(255, 193, 7, 0.15) !important;
+        border-radius: 10px;
+        padding: 10px;
+        transition: all 0.5s ease;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<!-- Hidden JSON data for JavaScript -->
+<script id="pricing-data" type="application/json">
+{
+    "hotel": {
+        "basic": {{ pricing.hotel.basic }},
+        "standard": {{ pricing.hotel.standard }},
+        "premium": {{ pricing.hotel.premium }}
+    },
+    "food": {{ pricing.food }},
+    "travel": {
+        "self": {{ pricing.travel.self }},
+        "train": {{ pricing.travel.train }},
+        "flight": {{ pricing.travel.flight }}
+    }
+}
+</script>
+
+<script id="travelers-data" type="application/json">
+{{ travelers.keys() | list | tojson }}
+</script>
+
+<script>
+    const packagePricing = JSON.parse(document.getElementById('pricing-data').textContent);
+
+    const travelersList = JSON.parse(document.getElementById('travelers-data').textContent);
+    // Calculate price for a specific traveler
+    function calculateTravelerPrice(idx) {
+        const startDate = document.querySelector(`input[name="start_date_${idx}"]`).value;
+        const endDate = document.querySelector(`input[name="end_date_${idx}"]`).value;
+
+        if (!startDate || !endDate) {
+            return 0;
+        }
+
+        // Calculate number of days
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const numDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+        if (numDays < 1) {
+            return 0;
+        }
+
+        // Show duration
+        document.getElementById(`days_${idx}`).style.display = 'block';
+        document.getElementById(`days_text_${idx}`).textContent = `${numDays} day${numDays > 1 ? 's' : ''}`;
+
+        // Get traveler age from the section data attribute using data-idx
+        const travelerSection = document.querySelector(`.traveler-package-section[data-idx="${idx}"]`);
+        let travelerAge = 18; // default to adult
+
+        if (travelerSection) {
+            travelerAge = parseInt(travelerSection.getAttribute('data-age')) || 18;
+        }
+
+        // Get hotel selection
+        const hotelRadio = document.querySelector(`input[name="hotel_${idx}"]:checked`);
+        const hotelType = hotelRadio ? hotelRadio.value : 'basic';
+        const baseHotelPrice = packagePricing.hotel[hotelType];
+
+        // Get travel selection
+        const travelSelect = document.querySelector(`select[name="travel_${idx}"]`);
+        const travelType = travelSelect.value;
+        const travelPrice = packagePricing.travel[travelType];
+
+        // Calculate base costs
+        const baseHotelCost = baseHotelPrice * numDays;
+        const baseFoodCost = packagePricing.food * numDays;
+
+        // Apply age-based discounts for hotel and food
+        let hotelCost, foodCost, discountNote = '';
+
+        if (travelerAge <= 5) {
+            // Children 5 and under: FREE hotel and food
+            hotelCost = 0;
+            foodCost = 0;
+            discountNote = 'Child (≤5 years): Free hotel & food';
+        } else if (travelerAge >= 6 && travelerAge <= 10) {
+            // Children 6-10: 50% discount on hotel and food
+            hotelCost = baseHotelCost * 0.5;
+            foodCost = baseFoodCost * 0.5;
+            discountNote = 'Child (6-10 years): 50% off hotel & food';
+        } else {
+            // Adults: Full price
+            hotelCost = baseHotelCost;
+            foodCost = baseFoodCost;
+        }
+
+        // Travel cost is NOT included in total (Pay Later model)
+        const travelCost = 0;
+        const subtotal = hotelCost + foodCost + travelCost;
+
+        // OTM doesn't affect pricing, just captures membership status
+        const finalPrice = subtotal;
+
+        // Update breakdown with discount information
+        // Determine travel cost display
+        let travelCostDisplay = travelType === 'self' ? '₹0' : 'Pay Later';
+        let travelCostClass = travelType === 'self' ? '' : 'text-warning';
+
+        let breakdownHTML = `
+            <div class="col-6"><small>Hotel (${hotelType}): ${numDays} days</small></div>
+            <div class="col-6 text-end"><small>₹${Math.round(hotelCost)}</small></div>
+            <div class="col-6"><small>Food (Premium): ${numDays} days</small></div>
+            <div class="col-6 text-end"><small>₹${Math.round(foodCost)}</small></div>
+            <div class="col-6"><small>Travel (${travelType}):</small></div>
+            <div class="col-6 text-end"><small class="${travelCostClass}">${travelCostDisplay}</small></div>
+        `;
+
+        // Add discount note if applicable
+        if (discountNote) {
+            breakdownHTML += `
+                <div class="col-12 mt-2">
+                    <small class="text-white"><i class="bi bi-tag-fill"></i> ${discountNote}</small>
+                </div>
+            `;
+        }
+
+        document.getElementById(`breakdown_${idx}`).innerHTML = breakdownHTML;
+        document.getElementById(`traveler_total_${idx}`).textContent = '₹' + Math.round(finalPrice);
+
+        return finalPrice;
+    }
+
+    // Calculate grand total
+    function calculateGrandTotal() {
+        let grandTotal = 0;
+
+        travelersList.forEach(idx => {
+            grandTotal += calculateTravelerPrice(idx);
+        });
+
+        document.getElementById('grandTotal').textContent = '₹' + Math.round(grandTotal);
+    }
+
+    // Event listeners for date changes
+    document.querySelectorAll('.start-date, .end-date').forEach(input => {
+        input.addEventListener('change', calculateGrandTotal);
+    });
+
+    // Event listeners for hotel selection
+    document.querySelectorAll('.hotel-radio').forEach(radio => {
+        radio.addEventListener('change', calculateGrandTotal);
+    });
+
+    // Event listeners for travel enable checkbox
+    document.querySelectorAll('.travel-enable').forEach(checkbox => {
+        checkbox.addEventListener('change', function () {
+            const idx = this.getAttribute('data-idx');
+            const travelSelect = document.getElementById(`travel_select_${idx}`);
+            const travelInfo = document.getElementById(`travel_info_${idx}`);
+
+            // Remove attention grabber effect once user interacts
+            this.closest('.form-check').classList.remove('attention-grabber');
+
+            if (this.checked) {
+                travelSelect.disabled = false;
+                // Set to train by default when enabled
+                travelSelect.value = 'train';
+                // Show the message for train
+                travelInfo.innerHTML = `
+                    <div class="alert alert-success" style="background: rgba(40, 167, 69, 0.2); border: 1px solid rgba(40, 167, 69, 0.5); margin-top: 10px; color: #fff;">
+                        <i class="bi bi-info-circle-fill"></i> 
+                        <strong>Don't worry!</strong> Our team member will contact you to book your Train ticket. 
+                        Just relax and we'll handle everything! 🎫
+                    </div>
+                `;
+                travelInfo.style.display = 'block';
+            } else {
+                travelSelect.disabled = true;
+                travelSelect.value = 'self';
+                travelInfo.style.display = 'none';
+                travelInfo.innerHTML = '';
+            }
+
+            calculateGrandTotal();
+
+            // If this is a guardian (adult), sync to children
+            const section = document.querySelector(`.traveler-package-section[data-idx="${idx}"]`);
+            const age = section ? parseInt(section.getAttribute('data-age')) : 18;
+            if (age > 10) {
+                syncGuardianToChildren(idx);
+            }
+        });
+    });
+
+    // Event listeners for travel selection
+    document.querySelectorAll('.travel-select').forEach(select => {
+        select.addEventListener('change', function () {
+            const idx = this.getAttribute('data-idx');
+            const value = this.value;
+            const travelInfo = document.getElementById(`travel_info_${idx}`);
+
+            // Show/hide travel info with message
+            if (value === 'train' || value === 'flight') {
+                const travelType = value.charAt(0).toUpperCase() + value.slice(1);
+                travelInfo.innerHTML = `
+                    <div class="alert alert-success" style="background: rgba(40, 167, 69, 0.2); border: 1px solid rgba(40, 167, 69, 0.5); margin-top: 10px; color: #fff;">
+                        <i class="bi bi-info-circle-fill"></i> 
+                        <strong>Don't worry!</strong> Our team member will contact you to book your ${travelType} ticket. 
+                        Just relax and we'll handle everything! 🎫
+                    </div>
+                `;
+                travelInfo.style.display = 'block';
+            } else {
+                travelInfo.style.display = 'none';
+                travelInfo.innerHTML = '';
+            }
+
+            calculateGrandTotal();
+        });
+    });
+
+    // Event listeners for OTM selection
+    document.querySelectorAll('input[name^="otm_"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            const idx = this.getAttribute('data-idx');
+            const value = this.value;
+
+            // Show/hide OTM code field
+            if (value === 'yes') {
+                document.getElementById(`otm_field_${idx}`).style.display = 'block';
+            } else {
+                document.getElementById(`otm_field_${idx}`).style.display = 'none';
+                // Reset verification status and lock travel booking
+                document.getElementById(`otm_status_${idx}`).style.display = 'none';
+                lockTravelBooking(idx);
+            }
+
+            calculateGrandTotal();
+        });
+    });
+
+
+    // Function to unlock travel booking
+    function unlockTravelBooking(idx) {
+        const travelCheckbox = document.getElementById(`travel_enable_${idx}`);
+        const lockMsg = document.getElementById(`travel_lock_msg_${idx}`);
+
+        if (travelCheckbox && lockMsg) {
+            travelCheckbox.disabled = false;
+            lockMsg.innerHTML = '<i class="bi bi-unlock-fill text-success"></i> Travel booking unlocked';
+
+            // Add attention grabber effect
+            const formCheck = travelCheckbox.closest('.form-check');
+            if (formCheck) {
+                formCheck.classList.add('attention-grabber');
+                // Scroll to make it visible if needed (smooth scroll)
+                formCheck.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    }
+
+    // Function to lock travel booking
+    function lockTravelBooking(idx) {
+        const travelCheckbox = document.getElementById(`travel_enable_${idx}`);
+        const travelSelect = document.getElementById(`travel_select_${idx}`);
+        const travelInfo = document.getElementById(`travel_info_${idx}`);
+        const lockMsg = document.getElementById(`travel_lock_msg_${idx}`);
+
+        if (travelCheckbox) {
+            travelCheckbox.checked = false;
+            travelCheckbox.disabled = true;
+            // Remove effect if locked
+            travelCheckbox.closest('.form-check').classList.remove('attention-grabber');
+        }
+        if (travelSelect) {
+            travelSelect.disabled = true;
+            travelSelect.value = 'self';
+        }
+        if (travelInfo) {
+            travelInfo.style.display = 'none';
+        }
+        if (lockMsg) {
+            lockMsg.innerHTML = '<i class="bi bi-lock-fill"></i> Verify OTM to unlock travel booking';
+        }
+
+        calculateGrandTotal();
+    }
+
+    // OTM Verification Handler
+    document.querySelectorAll('.verify-otm-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const idx = this.getAttribute('data-idx');
+            const otmInput = document.getElementById(`otm_code_${idx}`);
+            const otmStatus = document.getElementById(`otm_status_${idx}`);
+            const otmId = otmInput.value.trim();
+
+            if (!otmId) {
+                otmStatus.style.display = 'block';
+                otmStatus.className = 'alert alert-warning alert-sm mt-2';
+                otmStatus.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Please enter an OTM ID';
+                return;
+            }
+
+            // Disable button and show loading
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Verifying...';
+
+            // Call verification API
+            fetch('/verify-otm', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ otm_id: otmId })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    otmStatus.style.display = 'block';
+
+                    if (data.valid) {
+                        // Success
+                        otmStatus.className = 'alert alert-success alert-sm mt-2';
+                        otmStatus.innerHTML = `<i class="bi bi-check-circle-fill"></i> ${data.message}`;
+                        otmInput.disabled = true;
+                        this.disabled = true;
+                        this.innerHTML = '<i class="bi bi-check-circle-fill"></i> Verified';
+                        this.classList.remove('btn-warning');
+                        this.classList.add('btn-success');
+
+                        // Unlock travel booking
+                        unlockTravelBooking(idx);
+                    } else {
+                        // Error
+                        otmStatus.className = 'alert alert-danger alert-sm mt-2';
+                        otmStatus.innerHTML = `<i class="bi bi-x-circle-fill"></i> ${data.message}`;
+                        this.disabled = false;
+                        this.innerHTML = '<i class="bi bi-shield-check"></i> Verify';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    otmStatus.style.display = 'block';
+                    otmStatus.className = 'alert alert-danger alert-sm mt-2';
+                    otmStatus.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Verification failed. Please try again.';
+                    this.disabled = false;
+                    this.innerHTML = '<i class="bi bi-shield-check"></i> Verify';
+                });
+        });
+    });
+
+    // Function to sync guardian selections to children
+    function syncGuardianToChildren(guardianIdx) {
+        const allSections = document.querySelectorAll('.traveler-package-section');
+
+        // Find children who have this guardian
+        allSections.forEach((section, childIdx) => {
+            const guardianId = section.getAttribute('data-guardian-id');
+            const childAge = parseInt(section.getAttribute('data-age'));
+
+            // Check if this is a child (age <= 10) with a guardian
+            if (childAge <= 10 && guardianId) {
+                // Guardian ID is 1-indexed, so we need to match it with the section index
+                const expectedGuardianId = String(parseInt(guardianIdx) + 1);
+
+                if (guardianId === expectedGuardianId) {
+                    // This child belongs to the guardian, sync the selections
+
+                    // Sync dates
+                    const guardianStartDate = document.querySelector(`input[name="start_date_${guardianIdx}"]`);
+                    const guardianEndDate = document.querySelector(`input[name="end_date_${guardianIdx}"]`);
+                    const childStartDate = document.querySelector(`input[name="start_date_${childIdx}"]`);
+                    const childEndDate = document.querySelector(`input[name="end_date_${childIdx}"]`);
+
+                    if (guardianStartDate && childStartDate) {
+                        childStartDate.value = guardianStartDate.value;
+                    }
+                    if (guardianEndDate && childEndDate) {
+                        childEndDate.value = guardianEndDate.value;
+                    }
+
+                    // Sync hotel selection
+                    const guardianHotelRadio = document.querySelector(`input[name="hotel_${guardianIdx}"]:checked`);
+                    if (guardianHotelRadio) {
+                        const hotelValue = guardianHotelRadio.value;
+                        const childHotelRadio = document.querySelector(`input[name="hotel_${childIdx}"][value="${hotelValue}"]`);
+                        if (childHotelRadio) {
+                            childHotelRadio.checked = true;
+                        }
+                    }
+
+                    // Sync travel selection
+                    const guardianTravelSelect = document.querySelector(`select[name="travel_${guardianIdx}"]`);
+                    const childTravelSelect = document.querySelector(`select[name="travel_${childIdx}"]`);
+                    if (guardianTravelSelect && childTravelSelect) {
+                        childTravelSelect.value = guardianTravelSelect.value;
+                    }
+
+                    // Sync travel booking checkbox
+                    const guardianTravelCheckbox = document.getElementById(`travel_enable_${guardianIdx}`);
+                    const childTravelCheckbox = document.getElementById(`travel_enable_${childIdx}`);
+                    if (guardianTravelCheckbox && childTravelCheckbox) {
+                        childTravelCheckbox.checked = guardianTravelCheckbox.checked;
+                    }
+
+                    // Recalculate child's price
+                    calculateTravelerPrice(childIdx);
+                }
+            }
+        });
+    }
+
+    // Add event listeners to guardian fields to sync to children
+    document.querySelectorAll('.start-date, .end-date').forEach(input => {
+        input.addEventListener('change', function () {
+            const idx = this.getAttribute('data-idx');
+            const section = document.querySelector(`.traveler-package-section[data-idx="${idx}"]`);
+            const age = section ? parseInt(section.getAttribute('data-age')) : 18;
+
+            // If this is an adult (guardian), sync to children
+            if (age > 10) {
+                syncGuardianToChildren(idx);
+            }
+        });
+    });
+
+    document.querySelectorAll('.hotel-radio').forEach(radio => {
+        radio.addEventListener('change', function () {
+            const idx = this.getAttribute('data-idx');
+            const section = document.querySelector(`.traveler-package-section[data-idx="${idx}"]`);
+            const age = section ? parseInt(section.getAttribute('data-age')) : 18;
+
+            // If this is an adult (guardian), sync to children
+            if (age > 10) {
+                syncGuardianToChildren(idx);
+            }
+        });
+    });
+
+    document.querySelectorAll('.travel-select').forEach(select => {
+        select.addEventListener('change', function () {
+            const idx = this.getAttribute('data-idx');
+            const section = document.querySelector(`.traveler-package-section[data-idx="${idx}"]`);
+            const age = section ? parseInt(section.getAttribute('data-age')) : 18;
+
+            // If this is an adult (guardian), sync to children
+            if (age > 10) {
+                syncGuardianToChildren(idx);
+            }
+        });
+    });
+
+    // Initial sync on page load
+    document.querySelectorAll('.traveler-package-section').forEach((section) => {
+        const idx = section.getAttribute('data-idx');
+        const age = parseInt(section.getAttribute('data-age'));
+        // Sync all guardians to their children on page load
+        if (age > 10) {
+            syncGuardianToChildren(idx);
+        }
+    });
+
+    // Initial calculation
+    calculateGrandTotal();
+</script>
+{% endblock %}

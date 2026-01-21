@@ -1,0 +1,487 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="py-5 mt-5">
+    <div class="container-fluid">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="text-white">📊 Admin Dashboard</h2>
+                    <div>
+                        <a href="{{ url_for('admin_create_registration') }}" class="btn btn-primary me-2">
+                            <i class="bi bi-plus-circle"></i> Create New Registration
+                        </a>
+                        {% if current_table == 'otm_active' %}
+                        <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal"
+                            data-bs-target="#generateOTMModal">
+                            <i class="bi bi-key-fill"></i> Generate OTM IDs
+                        </button>
+                        {% endif %}
+                        <a href="{{ url_for('export_excel', table=current_table) }}" class="btn btn-success me-2">
+                            <i class="bi bi-file-earmark-excel"></i> Export Excel
+                        </a>
+                        <a href="{{ url_for('export_csv', table=current_table) }}" class="btn btn-info me-2">
+                            <i class="bi bi-file-earmark-text"></i> Export CSV
+                        </a>
+                        <a href="{{ url_for('admin_logout') }}" class="btn btn-danger">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Sidebar: Table List -->
+            <div class="col-lg-3 mb-4">
+                <div class="card glassmorphism p-3 h-100">
+                    <h5 class="text-white mb-3 ps-2 border-start border-warning border-4">📁 Database Tables</h5>
+                    <div class="list-group list-group-flush custom-list-group">
+                        <a href="{{ url_for('admin_dashboard', table='all_passengers') }}"
+                            class="list-group-item list-group-item-action {% if current_table == 'all_passengers' %}active{% endif %}">
+                            <i class="bi bi-people-fill me-2"></i> All Passengers
+                        </a>
+                        <a href="{{ url_for('admin_dashboard', table='passenger_insider') }}"
+                            class="list-group-item list-group-item-action {% if current_table == 'passenger_insider' %}active{% endif %}">
+                            <i class="bi bi-person-badge-fill me-2"></i> Insiders (OTM)
+                        </a>
+                        <a href="{{ url_for('admin_dashboard', table='passenger_outsider') }}"
+                            class="list-group-item list-group-item-action {% if current_table == 'passenger_outsider' %}active{% endif %}">
+                            <i class="bi bi-person-fill me-2"></i> Outsiders
+                        </a>
+                        <a href="{{ url_for('admin_dashboard', table='transactions') }}"
+                            class="list-group-item list-group-item-action {% if current_table == 'transactions' %}active{% endif %}">
+                            <i class="bi bi-credit-card-fill me-2"></i> Transaction Tracking
+                        </a>
+                        <a href="{{ url_for('admin_dashboard', table='otm_active') }}"
+                            class="list-group-item list-group-item-action {% if current_table == 'otm_active' %}active{% endif %}">
+                            <i class="bi bi-check-circle-fill me-2"></i> Active OTM IDs
+                        </a>
+                        <a href="{{ url_for('admin_dashboard', table='otm_expired') }}"
+                            class="list-group-item list-group-item-action {% if current_table == 'otm_expired' %}active{% endif %}">
+                            <i class="bi bi-x-circle-fill me-2"></i> Expired OTM IDs
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content: Data Grid -->
+            <div class="col-lg-9">
+                <div class="card glassmorphism p-4">
+                    <h4 class="mb-4">
+                        {% if current_table == 'all_passengers' %}All Database Records{% endif %}
+                        {% if current_table == 'passenger_insider' %}Passenger Insider (OTM){% endif %}
+                        {% if current_table == 'passenger_outsider' %}Passenger Outsider{% endif %}
+                        {% if current_table == 'transactions' %}Transaction Tracking{% endif %}
+                        {% if current_table == 'otm_active' %}Active OTM IDs{% endif %}
+                        {% if current_table == 'otm_expired' %}Expired OTM IDs{% endif %}
+                    </h4>
+                    <p class="text-white mb-3">Total Records: <strong id="totalRecords">{{ records|length }}</strong>
+                    </p>
+
+                    <!-- Search Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label for="searchColumn" class="form-label text-white">Search Column:</label>
+                            <select id="searchColumn" class="form-select"
+                                style="background-color: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2);">
+                                <option value="all">All Columns</option>
+                                {% for h in headers %}
+                                <option value="{{ loop.index0 }}">{{ h }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="searchBox" class="form-label text-white">Search:</label>
+                            <div class="input-group">
+                                <span class="input-group-text"
+                                    style="background-color: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white;">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" id="searchBox" class="form-control"
+                                    placeholder="Enter search term..."
+                                    style="background-color: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2);">
+                                <button class="btn btn-outline-secondary" type="button" id="clearSearch"
+                                    style="border: 1px solid rgba(255, 255, 255, 0.2); color: white;">
+                                    <i class="bi bi-x-circle"></i> Clear
+                                </button>
+                            </div>
+                            <small class="text-white-50">Showing <span id="visibleRecords">{{ records|length
+                                    }}</span> of <span id="totalRecordsBottom">{{ records|length }}</span>
+                                records</small>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                        <table class="table table-dark table-striped table-hover">
+                            <thead class="sticky-top" style="background-color: #1a1a2e;">
+                                <tr>
+                                    {% for h in headers %}
+                                    <th>{{ h }}</th>
+                                    {% endfor %}
+                                    <th style="min-width: 150px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if records %}
+                                {% for record in records %}
+                                <tr data-record-id="{{ record.id if record.id else loop.index }}">
+                                    {% for col in record.cols %}
+                                    <td>
+                                        {% if col == 'Paid' %}
+                                        <span class="badge bg-success">Paid</span>
+                                        {% elif col == 'Pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                        {% elif col == 'Failed' %}
+                                        <span class="badge bg-danger">Failed</span>
+                                        {% else %}
+                                        {{ col }}
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                    <td>
+                                        {% if current_table in ['passenger_insider', 'passenger_outsider',
+                                        'all_passengers'] %}
+                                        <a href="{{ url_for('admin_generate_receipt', record_id=record.id, table=current_table) }}"
+                                            class="btn btn-sm btn-success me-1" title="Generate Receipt"
+                                            target="_blank">
+                                            <i class="bi bi-receipt"></i>
+                                        </a>
+                                        {% endif %}
+                                        <button class="btn btn-sm btn-warning me-1 edit-btn"
+                                            data-record-id="{{ record.id if record.id else loop.index }}"
+                                            data-bs-toggle="modal" data-bs-target="#editModal" title="Edit Record">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-btn"
+                                            data-record-id="{{ record.id if record.id else loop.index }}"
+                                            data-record-name="{{ record.cols[0] if record.cols else 'this record' }}"
+                                            title="Delete Record">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="{{ headers|length + 1 }}" class="text-center">No records found.</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background: #1a1a2e; color: white;">
+            <div class="modal-header" style="border-color: rgba(255, 255, 255, 0.1);">
+                <h5 class="modal-title" id="editModalLabel">
+                    <i class="bi bi-pencil-square me-2"></i>Edit Record
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <form id="editForm" method="POST" action="{{ url_for('admin_update_record') }}">
+                <div class="modal-body">
+                    <input type="hidden" name="record_id" id="edit_record_id">
+                    <input type="hidden" name="table_name" id="edit_table_name" value="{{ current_table }}">
+                    <div id="editFormFields"></div>
+                </div>
+                <div class="modal-footer" style="border-color: rgba(255, 255, 255, 0.1);">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-save me-1"></i>Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Generate OTM IDs Modal -->
+<div class="modal fade" id="generateOTMModal" tabindex="-1" aria-labelledby="generateOTMModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: #1a1a2e; color: white;">
+            <div class="modal-header" style="border-color: rgba(255, 255, 255, 0.1);">
+                <h5 class="modal-title" id="generateOTMModalLabel">
+                    <i class="bi bi-key-fill me-2"></i>Generate OTM IDs
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <form id="generateOTMForm" method="POST" action="{{ url_for('generate_otm_ids') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="otm_quantity" class="form-label">
+                            <i class="bi bi-hash me-1"></i>Number of OTM IDs to Generate *
+                        </label>
+                        <input type="number" class="form-control" id="otm_quantity" name="quantity" min="1" max="100"
+                            value="10" required>
+                        <small class="text-white-50">Generate 1-100 OTM IDs at once</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="otm_prefix" class="form-label">
+                            <i class="bi bi-tag me-1"></i>Prefix (Optional)
+                        </label>
+                        <input type="text" class="form-control" id="otm_prefix" name="prefix" maxlength="10"
+                            placeholder="e.g., DY2026">
+                        <small class="text-white-50">Add a prefix to all generated IDs</small>
+                    </div>
+                    <div class="alert alert-info"
+                        style="background: rgba(13, 202, 240, 0.15); border: 1px solid rgba(13, 202, 240, 0.3);">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Format:</strong> Generated IDs will be 5-character alphanumeric codes (e.g.,
+                        "DY2026A1B2C" or "X9Y8Z")
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-color: rgba(255, 255, 255, 0.1);">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-key-fill me-1"></i>Generate OTM IDs
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-list-group .list-group-item {
+        background: transparent;
+        color: rgba(255, 255, 255, 0.7);
+        border-color: rgba(255, 255, 255, 0.1);
+        transition: all 0.2s ease;
+    }
+
+    .custom-list-group .list-group-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        padding-left: 20px;
+    }
+
+    .custom-list-group .list-group-item.active {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+        border-color: rgba(255, 193, 7, 0.3);
+        border-left: 3px solid #ffc107;
+    }
+
+    .table-responsive {
+        border-radius: 8px;
+    }
+
+    .table-dark {
+        --bs-table-bg: rgba(255, 255, 255, 0.05);
+        --bs-table-striped-bg: rgba(255, 255, 255, 0.08);
+        --bs-table-hover-bg: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .table tbody td {
+        vertical-align: middle;
+        border-color: rgba(255, 255, 255, 0.1);
+        white-space: nowrap;
+    }
+
+    .form-select option {
+        background-color: #1a1a2e;
+        color: white;
+    }
+
+    .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .modal .form-control,
+    .modal .form-select {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .modal .form-control:focus,
+    .modal .form-select:focus {
+        background-color: rgba(255, 255, 255, 0.15);
+        border-color: #ffc107;
+        color: white;
+    }
+</style>
+
+<script>
+    document.getElementById('tableSelector').addEventListener('change', function () {
+        window.location.href = "{{ url_for('admin_dashboard') }}?table=" + this.value;
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchBox = document.getElementById('searchBox');
+        const searchColumn = document.getElementById('searchColumn');
+        const clearButton = document.getElementById('clearSearch');
+        const tableBody = document.querySelector('tbody');
+        const rows = tableBody.querySelectorAll('tr');
+        const visibleRecordsSpan = document.getElementById('visibleRecords');
+        const totalRecordsSpan = document.getElementById('totalRecordsBottom');
+
+        // Get the total number of data rows (excluding "no passengers" row)
+        const totalRows = rows.length > 0 && rows[0].querySelector('td[colspan]') ? 0 : rows.length;
+
+        function performSearch() {
+            const searchTerm = searchBox.value.toLowerCase().trim();
+            const columnIndex = searchColumn.value;
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                // Skip the "no passengers" row
+                if (row.querySelector('td[colspan]')) {
+                    return;
+                }
+
+                let shouldShow = false;
+
+                if (searchTerm === '') {
+                    shouldShow = true;
+                } else if (columnIndex === 'all') {
+                    // Search all columns
+                    const rowText = row.textContent.toLowerCase();
+                    shouldShow = rowText.includes(searchTerm);
+                } else {
+                    // Search specific column (columnIndex is 1-based, but we need 0-based for cells)
+                    const cellIndex = parseInt(columnIndex);
+                    const cell = row.cells[cellIndex];
+                    if (cell) {
+                        const cellText = cell.textContent.toLowerCase();
+                        shouldShow = cellText.includes(searchTerm);
+                    }
+                }
+
+                if (shouldShow) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Update visible records count
+            visibleRecordsSpan.textContent = visibleCount;
+
+            // Show "no results" message if needed
+            if (visibleCount === 0 && totalRows > 0) {
+                let noResultsRow = document.getElementById('noResultsRow');
+                if (!noResultsRow) {
+                    noResultsRow = document.createElement('tr');
+                    noResultsRow.id = 'noResultsRow';
+                    noResultsRow.innerHTML = '<td colspan="13" class="text-center text-warning">No matching records found.</td>';
+                    tableBody.appendChild(noResultsRow);
+                }
+                noResultsRow.style.display = '';
+            } else {
+                const noResultsRow = document.getElementById('noResultsRow');
+                if (noResultsRow) {
+                    noResultsRow.style.display = 'none';
+                }
+            }
+        }
+
+        function clearSearch() {
+            searchBox.value = '';
+            searchColumn.value = 'all';
+            performSearch();
+        }
+
+        // Event listeners
+        searchBox.addEventListener('input', performSearch);
+        searchColumn.addEventListener('change', performSearch);
+        clearButton.addEventListener('click', clearSearch);
+
+        // Allow pressing Enter in search box
+        searchBox.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performSearch();
+            }
+        });
+
+        // CRUD Operations
+        // Edit button click handler
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const recordId = this.getAttribute('data-record-id');
+                const row = this.closest('tr');
+                const cells = row.querySelectorAll('td');
+                const headers = {{ headers | tojson
+            }};
+
+        // Set record ID
+        document.getElementById('edit_record_id').value = recordId;
+
+        // Build form fields
+        const formFields = document.getElementById('editFormFields');
+        formFields.innerHTML = '';
+
+        headers.forEach((header, index) => {
+            const cellValue = cells[index].textContent.trim();
+            const fieldId = `edit_${header.replace(/\s+/g, '_').toLowerCase()}`;
+
+            const formGroup = document.createElement('div');
+            formGroup.className = 'mb-3';
+            formGroup.innerHTML = `
+                        <label for="${fieldId}" class="form-label">${header}</label>
+                        <input type="text" class="form-control" id="${fieldId}" name="${header}" value="${cellValue}">
+                    `;
+            formFields.appendChild(formGroup);
+        });
+    });
+        });
+
+    // Delete button click handler
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const recordId = this.getAttribute('data-record-id');
+            const recordName = this.getAttribute('data-record-name');
+
+            if (confirm(`Are you sure you want to delete the record for "${recordName}"?\n\nThis action cannot be undone.`)) {
+                // Send delete request
+                fetch('{{ url_for("admin_delete_record") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        record_id: recordId,
+                        table_name: '{{ current_table }}'
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Record deleted successfully!');
+                            location.reload();
+                        } else {
+                            alert('Error deleting record: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error deleting record. Please try again.');
+                    });
+            }
+        });
+    });
+    });
+</script>
+
+{% endblock %}

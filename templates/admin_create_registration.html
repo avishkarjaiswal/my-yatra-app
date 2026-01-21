@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="py-5 mt-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card glassmorphism p-4 p-md-5">
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <h2 class="mb-2" style="font-weight: 700; color: #fff;">
+                            <i class="bi bi-person-plus-fill me-2"></i>Admin: Create New Registration
+                        </h2>
+                        <p class="text-white-50 mb-0" style="font-size: 1.1rem;">
+                            Register a traveler with custom pricing
+                        </p>
+                        <div
+                            style="width: 100px; height: 2px; background: linear-gradient(90deg, transparent, #ffc107, transparent); margin: 15px auto;">
+                        </div>
+                    </div>
+
+                    <form action="{{ url_for('admin_create_registration') }}" method="POST">
+                        <!-- Traveler Personal Details -->
+                        <h5 class="text-warning mb-3 border-bottom border-warning pb-2">
+                            <i class="bi bi-person-badge me-2"></i>Personal Information
+                        </h5>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Full Name *</label>
+                                <input type="text" name="name" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email *</label>
+                                <input type="email" name="email" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Phone *</label>
+                                <input type="tel" name="phone" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Alternative Phone</label>
+                                <input type="tel" name="alternative_phone" class="form-control">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Age *</label>
+                                <input type="number" name="age" class="form-control" min="0" max="120" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Gender *</label>
+                                <select name="gender" class="form-select" required>
+                                    <option value="">Select</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">City</label>
+                                <input type="text" name="city" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">District</label>
+                                <input type="text" name="district" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">State</label>
+                                <input type="text" name="state" class="form-control">
+                            </div>
+                        </div>
+
+                        <!-- Package Details -->
+                        <h5 class="text-warning mb-3 border-bottom border-warning pb-2 mt-4">
+                            <i class="bi bi-box-seam me-2"></i>Package Details
+                        </h5>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Journey Start Date *</label>
+                                <input type="date" name="journey_start_date" class="form-control" value="2026-01-31"
+                                    min="2026-01-31" max="2026-02-05" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Journey End Date *</label>
+                                <input type="date" name="journey_end_date" class="form-control" value="2026-02-05"
+                                    min="2026-01-31" max="2026-02-05" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Hotel Category *</label>
+                                <select name="hotel_category" class="form-select" required>
+                                    <option value="basic">Basic</option>
+                                    <option value="standard" selected>Standard</option>
+                                    <option value="premium">Premium</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Travel Medium *</label>
+                                <select name="travel_medium" class="form-select" required>
+                                    <option value="self" selected>Self Travel</option>
+                                    <option value="train">Train</option>
+                                    <option value="flight">Flight</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Food Package</label>
+                                <input type="text" class="form-control" value="Premium" disabled
+                                    style="background-color: rgba(40, 167, 69, 0.2); border: 1px solid rgba(40, 167, 69, 0.5); color: white;">
+                                <small class="text-white-50">Fixed for all travelers</small>
+                            </div>
+                        </div>
+
+                        <!-- OTM Details -->
+                        <h5 class="text-warning mb-3 border-bottom border-warning pb-2 mt-4">
+                            <i class="bi bi-card-checklist me-2"></i>OTM (Optional)
+                        </h5>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Has OTM?</label>
+                                <select name="has_otm" class="form-select" id="has_otm_select">
+                                    <option value="no" selected>No</option>
+                                    <option value="yes">Yes</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6" id="otm_id_field" style="display: none;">
+                                <label class="form-label">OTM ID</label>
+                                <input type="text" name="otm_id" class="form-control" id="otm_id_input">
+                            </div>
+                        </div>
+
+                        <!-- Payment & Discount -->
+                        <h5 class="text-warning mb-3 border-bottom border-warning pb-2 mt-4">
+                            <i class="bi bi-cash-coin me-2"></i>Payment & Discount
+                        </h5>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Base Amount (Auto-calculated) *</label>
+                                <input type="number" name="base_amount" class="form-control" step="0.01" required>
+                                <small class="text-white-50">Enter the calculated package amount</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    <i class="bi bi-percent me-1"></i>Custom Discount (%) *
+                                </label>
+                                <input type="number" name="custom_discount" class="form-control" min="0" max="100"
+                                    value="0" step="0.01" required id="discount_input">
+                                <small class="text-white-50">0-100% discount (0 = no discount)</small>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="alert alert-info"
+                                    style="background: rgba(13, 202, 240, 0.15); border: 1px solid rgba(13, 202, 240, 0.3);">
+                                    <strong>Final Amount:</strong> ₹<span id="final_amount">0.00</span>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Payment Status *</label>
+                                <select name="payment_status" class="form-select" required>
+                                    <option value="Paid" selected>Paid</option>
+                                    <option value="Pending">Pending</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Order ID</label>
+                                <input type="text" name="razorpay_order_id" class="form-control"
+                                    placeholder="Auto-generated if empty">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Payment ID</label>
+                                <input type="text" name="razorpay_payment_id" class="form-control"
+                                    placeholder="Optional">
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row g-3 mt-4">
+                            <div class="col-md-6">
+                                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-light btn-lg w-100">
+                                    <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-success btn-lg w-100">
+                                    <i class="bi bi-check-circle"></i> Create Registration
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .form-control,
+    .form-select {
+        background-color: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 8px;
+        padding: 12px 15px;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background-color: rgba(0, 0, 0, 0.4);
+        border-color: #ffc107;
+        box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.15);
+        color: white;
+    }
+
+    .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .form-label {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .form-select option {
+        background: #1a1a2e;
+        color: white;
+    }
+</style>
+
+<script>
+    // Show/hide OTM ID field
+    document.getElementById('has_otm_select').addEventListener('change', function () {
+        const otmField = document.getElementById('otm_id_field');
+        const otmInput = document.getElementById('otm_id_input');
+        if (this.value === 'yes') {
+            otmField.style.display = 'block';
+            otmInput.required = true;
+        } else {
+            otmField.style.display = 'none';
+            otmInput.required = false;
+            otmInput.value = '';
+        }
+    });
+
+    // Calculate final amount with discount
+    function updateFinalAmount() {
+        const baseAmount = parseFloat(document.querySelector('[name="base_amount"]').value) || 0;
+        const discount = parseFloat(document.getElementById('discount_input').value) || 0;
+        const finalAmount = baseAmount * (1 - discount / 100);
+        document.getElementById('final_amount').textContent = finalAmount.toFixed(2);
+    }
+
+    document.querySelector('[name="base_amount"]').addEventListener('input', updateFinalAmount);
+    document.getElementById('discount_input').addEventListener('input', updateFinalAmount);
+</script>
+
+{% endblock %}

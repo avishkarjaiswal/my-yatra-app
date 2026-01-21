@@ -1,0 +1,71 @@
+:root {
+    --primary-color: #ff7e5f;
+    --secondary-color: #feb47b;
+    --dark-bg: #1a1a2e;
+    --card-bg: rgba(255, 255, 255, 0.1);
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--dark-bg);
+    color: #fff;
+    min-height: 100vh;
+}
+
+/* Glassmorphism */
+.glassmorphism {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Hero Section */
+.hero {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    padding: 150px 0 100px;
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+}
+
+.hero h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+/* Buttons */
+.btn-primary {
+    background: linear-gradient(90deg, #ff512f, #dd2476);
+    border: none;
+    transition: transform 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(221, 36, 118, 0.4);
+}
+
+/* Cards */
+.card {
+    background: var(--card-bg);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Form Styles */
+.form-control {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.form-control:focus {
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+    border-color: var(--primary-color);
+    box-shadow: none;
+}

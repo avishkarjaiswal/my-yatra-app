@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block step_indicator %}
+<div class="step-indicator-container">
+    <div class="container">
+        <div class="step-indicator">
+            <div class="step-item completed">
+                <div class="step-circle">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="step-label">Registration</div>
+            </div>
+            <div class="step-item completed">
+                <div class="step-circle">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="step-label">Package Selection</div>
+            </div>
+            <div class="step-item completed">
+                <div class="step-circle">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="step-label">Review Summary</div>
+            </div>
+            <div class="step-item completed">
+                <div class="step-circle">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="step-label">Payment</div>
+            </div>
+            <div class="step-item active">
+                <div class="step-circle">
+                    <i class="bi bi-trophy-fill"></i>
+                </div>
+                <div class="step-label">Confirmation</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="py-5 mt-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card glassmorphism p-5 text-center" id="receipt">
+                    <div class="mb-4">
+                        <h2 class="text-success">✓ Registration Successful!</h2>
+                        <p>Thank you for registering for Dwarka Yatra.</p>
+                    </div>
+
+                    <div class="text-start border p-4 rounded mb-4 bg-light text-dark">
+                        <h5 class="text-center mb-3 text-primary">Payment Receipt</h5>
+                        <div class="row mb-2">
+                            <div class="col-6 fw-bold">Total Amount Paid:</div>
+                            <div class="col-6 text-success fw-bold">₹ {{ total_amount }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6 fw-bold">Payment Status:</div>
+                            <div class="col-6"><span class="badge bg-success">Paid</span></div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6 fw-bold">Number of Travelers:</div>
+                            <div class="col-6">{{ passengers|length }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6 fw-bold">Date:</div>
+                            <div class="col-6">{{ passengers[0].created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                    </div>
+
+                    <div class="text-start border p-4 rounded mb-4 bg-light text-dark">
+                        <h5 class="text-center mb-3 text-primary">Travelers</h5>
+                        {% for passenger in passengers %}
+                        <div class="border-bottom pb-3 mb-3">
+                            <div class="row mb-2">
+                                <div class="col-4 fw-bold">Name:</div>
+                                <div class="col-8">{{ passenger.name }}</div>
+                            </div>
+                            {% if passenger.email %}
+                            <div class="row mb-2">
+                                <div class="col-4 fw-bold">Email:</div>
+                                <div class="col-8">{{ passenger.email }}</div>
+                            </div>
+                            {% endif %}
+                            {% if passenger.phone %}
+                            <div class="row mb-2">
+                                <div class="col-4 fw-bold">Phone:</div>
+                                <div class="col-8">{{ passenger.phone }}</div>
+                            </div>
+                            {% endif %}
+                            <div class="row mb-2">
+                                <div class="col-4 fw-bold">Age:</div>
+                                <div class="col-8">{{ passenger.age }} years</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-4 fw-bold">Gender:</div>
+                                <div class="col-8">{{ passenger.gender }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-4 fw-bold">Package:</div>
+                                <div class="col-8"><span class="badge bg-primary">{{ passenger.yatra_class }}</span>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-4 fw-bold">Amount:</div>
+                                <div class="col-8">₹ {{ passenger.amount }}</div>
+                            </div>
+
+                            <div class="row mb-2">
+                                <div class="col-4 fw-bold">Order ID:</div>
+                                <div class="col-8"><code>{{ passenger.razorpay_order_id }}</code></div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-4 fw-bold">Payment ID:</div>
+                                <div class="col-8"><code>{{ passenger.razorpay_payment_id }}</code></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="text-start border p-4 rounded mb-4 bg-light text-dark">
+                        <h5 class="text-center mb-3 text-success">📱 Join Our WhatsApp Group</h5>
+                        <p class="text-center mb-3">Stay connected with us! Join our official
+                            WhatsApp group for updates, information and community support.</p>
+                        <div class="text-center">
+                            <a href="https://chat.whatsapp.com/IKqLI5yzpI21DGCZ6Q0v4N" target="_blank"
+                                class="btn btn-success">
+                                <i class="bi bi-whatsapp me-2"></i>Join WhatsApp Group
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="d-print-none">
+                        <a href="{{ url_for('download_receipt', order_ids=order_ids) }}" class="btn btn-success me-2">
+                            <i class="bi bi-download me-1"></i>Download Receipt
+                        </a>
+                        <a href="{{ url_for('index') }}" class="btn btn-primary">Back to Home</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Prevent back navigation from receipt page
+    (function () {
+        // Push a new state to prevent back navigation
+        if (window.history && window.history.pushState) {
+            // Add a dummy state
+            window.history.pushState('forward', null, window.location.href);
+
+            // Listen for popstate (back button)
+            window.addEventListener('popstate', function (event) {
+                // Push forward again to prevent going back
+                window.history.pushState('forward', null, window.location.href);
+
+                // Show alert to user
+                alert('You cannot go back from the receipt page. Please use the "Back to Home" button if you wish to navigate away.');
+            });
+        }
+
+        // Warn user if they try to refresh or close the page
+        window.addEventListener('beforeunload', function (e) {
+            // Most modern browsers ignore custom messages, but we still set it
+            const message = 'Are you sure you want to leave? Your receipt is available for download.';
+            e.preventDefault();
+            e.returnValue = message;
+            return message;
+        });
+    })();
+</script>
+{% endblock %}

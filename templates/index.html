@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Hero Carousel Banner -->
+<section class="p-0">
+    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="4000">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="{{ url_for('static', filename='images/dwarka1.png') }}" class="d-block w-100"
+                    alt="Dwarka Temple" style="height: 650px; object-fit: cover; filter: brightness(0.7);">
+                <div class="carousel-caption">
+                    <h1 class="display-4 fw-bold">Welcome to Dwarka Yatra</h1>
+                    <p class="lead">Experience the Divine Journey</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="{{ url_for('static', filename='images/dwarka2.png') }}" class="d-block w-100"
+                    alt="Spiritual Gathering" style="height: 650px; object-fit: cover; filter: brightness(0.7);">
+                <div class="carousel-caption">
+                    <h1 class="display-4 fw-bold">Join Thousands of Devotees</h1>
+                    <p class="lead">Spiritual Journey to Krishna's Kingdom</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="{{ url_for('static', filename='images/dwarka3.png') }}" class="d-block w-100"
+                    alt="Dwarka Coastline" style="height: 650px; object-fit: cover; filter: brightness(0.7);">
+                <div class="carousel-caption">
+                    <h1 class="display-4 fw-bold">Sacred Coastal City</h1>
+                    <p class="lead">Where Spirituality Meets the Sea</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="{{ url_for('static', filename='images/dwarka4.png') }}" class="d-block w-100"
+                    alt="Temple Interior" style="height: 650px; object-fit: cover; filter: brightness(0.7);">
+                <div class="carousel-caption">
+                    <h1 class="display-4 fw-bold">Ancient Architecture</h1>
+                    <p class="lead">Witness Divine Craftsmanship</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="{{ url_for('static', filename='images/dwarka5.png') }}" class="d-block w-100"
+                    alt="Happy Pilgrims" style="height: 650px; object-fit: cover; filter: brightness(0.7);">
+                <div class="carousel-caption">
+                    <h1 class="display-4 fw-bold">Create Lasting Memories</h1>
+                    <p class="lead">Book Your Spiritual Journey Today</p>
+                    <a href="{{ url_for('register') }}" class="btn btn-warning btn-lg mt-3">Register Now</a>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</section>
+
+<!-- YouTube Video Section -->
+<section class="py-5 bg-black bg-opacity-25">
+    <div class="container">
+        <h2 class="text-center mb-4">Experience Dwarka Yatra</h2>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="ratio ratio-16x9 rounded-3 overflow-hidden shadow-lg">
+                    <iframe src="https://www.youtube.com/embed/zTeCw1twHRY" title="Dwarka Yatra Video" frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features / Info -->
+<section class="py-5">
+    <div class="container text-center">
+        <h2 class="mb-5">Experience the Divine</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="p-4 border border-secondary rounded glassmorphism">
+                    <h3>Spiritual Guides</h3>
+                    <p>Expert guides to explain the history and significance.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4 border border-secondary rounded glassmorphism">
+                    <h3>Comfortable Stay</h3>
+                    <p>Premium accommodation arrangements for all yatris.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4 border border-secondary rounded glassmorphism">
+                    <h3>Hassle-free Travel</h3>
+                    <p>Complete transport solutions from start to finish.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Dwarka Section -->
+<section id="about" class="py-5 bg-black bg-opacity-25">
+    <div class="container">
+        <h2 class="text-left mb-5"> About Dwarka</h2>
+        <div class="row align-items-center">
+            <!-- Left side - Image -->
+            <div class="col-lg-5 mb-4 mb-lg-0">
+                <div class="text-center">
+                    <img src="{{ url_for('static', filename='images/Dwarka index.jpg') }}"
+                        class="img-fluid rounded-3 shadow-lg" alt="Dwarka Index" style="max-width: 100%; height: auto;">
+                </div>
+            </div>
+
+            <!-- Right side - Text Content -->
+            <div class="col-lg-7">
+                <div class="glassmorphism p-5 rounded-3">
+                    <p class="text-white lead mb-4 text-justify" style="line-height: 1.8;">
+                        Dwarka is one of the most sacred pilgrimage destinations in India, revered as the ancient
+                        kingdom of Lord Shri Krishna. Situated on the western coast of Gujarat, Dwarka is counted among
+                        the <strong>Char Dham</strong> and <strong>Sapta Puri</strong>, making it a vital center of
+                        Hindu spirituality.
+                    </p>
+                    <p class="text-white lead mb-4 text-justify" style="line-height: 1.8;">
+                        According to the scriptures, Dwarka was established by Lord Krishna after leaving Mathura, and
+                        it symbolizes divine governance, devotion, and dharma. The magnificent <strong>Dwarkadhish
+                            Temple</strong>, standing on the banks of the Gomti River, draws millions of devotees who
+                        come to seek the blessings of Shri Krishna.
+                    </p>
+                    <p class="text-white lead mb-4 text-justify" style="line-height: 1.8;">
+                        A yatra to Dwarka is not just a journey to a holy city, but a spiritual experience that connects
+                        devotees with Krishna's leelas, the teachings of the Bhagavad Gita, and the timeless essence of
+                        bhakti.
+                    </p>
+                    <div class="text-center mt-5">
+                        <a href="{{ url_for('register') }}" class="btn btn-warning btn-lg px-5 py-3">
+                            <i class="bi bi-calendar-check-fill"></i> Begin Dham Yatra from here!
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Ensure carousel auto-plays smoothly
+    document.addEventListener('DOMContentLoaded', function () {
+        const heroCarousel = document.getElementById('heroCarousel');
+        if (heroCarousel) {
+            // Initialize Bootstrap carousel with auto-play
+            const carousel = new bootstrap.Carousel(heroCarousel, {
+                interval: 4000,  // 4 seconds
+                ride: 'carousel',
+                pause: 'hover',
+                wrap: true
+            });
+
+            // Start cycling automatically
+            carousel.cycle();
+        }
+    });
+</script>
+{% endblock %}

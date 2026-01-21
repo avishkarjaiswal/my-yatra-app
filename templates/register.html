@@ -1,0 +1,596 @@
+{% extends 'base.html' %}
+
+{% block step_indicator %}
+<div class="step-indicator-container">
+    <div class="container">
+        <div class="step-indicator">
+            <div class="step-item active">
+                <div class="step-circle">
+                    <i class="bi bi-person-plus-fill"></i>
+                </div>
+                <div class="step-label">Registration</div>
+            </div>
+            <div class="step-item">
+                <div class="step-circle">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div class="step-label">Package Selection</div>
+            </div>
+            <div class="step-item">
+                <div class="step-circle">
+                    <i class="bi bi-clipboard-check"></i>
+                </div>
+                <div class="step-label">Review Summary</div>
+            </div>
+            <div class="step-item">
+                <div class="step-circle">
+                    <i class="bi bi-credit-card"></i>
+                </div>
+                <div class="step-label">Payment</div>
+            </div>
+            <div class="step-item">
+                <div class="step-circle">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="step-label">Confirmation</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="py-5 mt-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card glassmorphism p-4 p-md-5">
+                    <!-- Header with Indian touch -->
+                    <div class="text-center mb-5">
+                        <div
+                            style="font-size: 3rem; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(255, 193, 7, 0.5));">
+
+                        </div>
+                        <h2 class="mb-2" style="font-weight: 700; color: #fff;">Yatra Registration Form</h2>
+                        <p class="text-white-50 mb-0" style="font-size: 1.1rem;">
+                            🙏 Add all travelers for this booking
+                        </p>
+                        <div style="width: 100px; height: 2px; background: linear-gradient(90deg, transparent, #ffc107, transparent); margin: 15px
+auto;">
+                        </div>
+                    </div>
+
+                    <form action="{{ url_for('register') }}" method="POST">
+
+                        <div class="d-flex justify-content-between align-items-center mb-4 p-3 rounded"
+                            style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.2);">
+                            <h4 class="mb-0" style="color: #ffc107;">
+                                <i class="bi bi-people-fill"></i> Travelers
+                            </h4>
+                            <button type="button" class="btn btn-primary" id="addPassenger">
+                                <i class="bi bi-plus-circle"></i> Add Traveler
+                            </button>
+                        </div>
+
+                        <div id="passengerContainer">
+                            <!-- Passenger sections will be added here -->
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg"
+                                style="padding: 15px; font-size: 1.2rem; font-weight: 600;">
+                                <i class="bi bi-arrow-right-circle"></i> Continue to Package Selection
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Enhanced passenger section styling */
+    .passenger-section {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 193, 7, 0.2);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .passenger-section:hover {
+        border-color: rgba(255, 193, 7, 0.4);
+        background: rgba(255, 255, 255, 0.05);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .passenger-section::before {
+        content: '🙏';
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 24px;
+        opacity: 0.15;
+    }
+
+    .passenger-section h5 {
+        color: #ffc107;
+        font-weight: 600;
+        font-size: 1.3rem;
+    }
+
+    .passenger-section h6 {
+        color: #feb47b;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(255, 193, 7, 0.2);
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        margin-top: 20px;
+    }
+
+    /* Package selection cards with Indian icons */
+    .btn-outline-light {
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        background: rgba(0, 0, 0, 0.2);
+        color: white;
+        transition: all 0.3s ease;
+        border-radius: 12px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-outline-light:hover {
+        border-color: rgba(255, 193, 7, 0.5);
+        background: rgba(255, 193, 7, 0.1);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-check:checked+.btn-outline-light {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.3) 0%, rgba(255, 127, 95, 0.3) 100%);
+        border-color: #ffc107;
+        color: white;
+        box-shadow: 0 8px 25px rgba(255, 193, 7, 0.3);
+        transform: scale(1.02);
+    }
+
+
+    /* Form controls matching theme */
+    .form-control,
+    .form-select {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 8px;
+        padding: 12px 15px;
+        transition: all 0.3s ease;
+        font-size: 1.1rem;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background: rgba(0, 0, 0, 0.4);
+        border-color: #ffc107;
+        box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.15);
+        color: white;
+    }
+
+    .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 1rem;
+    }
+
+    .form-label {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
+        margin-bottom: 10px;
+        font-size: 1.05rem;
+    }
+
+
+    .form-select option {
+        background: #1a1a2e;
+        color: white;
+    }
+
+    /* Button enhancements */
+    .btn-primary {
+        background: linear-gradient(90deg, #ff512f, #dd2476);
+        border: none;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(221, 36, 118, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(221, 36, 118, 0.5);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-danger:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 18px rgba(220, 53, 69, 0.5);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 6px 25px rgba(40, 167, 69, 0.4);
+        transition: all 0.3s ease;
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(40, 167, 69, 0.6);
+    }
+
+    /* Package card icons */
+    .package-icon {
+        font-size: 2.5rem;
+        margin-bottom: 8px;
+        display: block;
+        filter: drop-shadow(0 2px 8px rgba(255, 193, 7, 0.3));
+    }
+
+    /* Guardian field styling */
+    .guardian-field {
+        background: rgba(40, 167, 69, 0.05);
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid rgba(40, 167, 69, 0.2);
+    }
+
+    .is-invalid {
+        border-color: #dc3545 !important;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .passenger-section {
+            padding: 20px 15px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let passengerCounter = 0;
+
+    // Add passenger functionality
+    function addPassenger() {
+        passengerCounter++;
+        const container = document.getElementById('passengerContainer');
+        const html = `
+        <` + `div class="passenger-section" data-passenger-id="${passengerCounter}">
+            <` + `div class="d-flex justify-content-between align-items-center mb-3">
+                <` + `h5><` + `i class="bi bi-person-badge"><` + `/i> Traveler ${passengerCounter}<` + `/h5>
+                <` + `button type="button" class="btn btn-danger btn-sm remove-passenger">
+                    <` + `i class="bi bi-trash"><` + `/i> Remove
+                <` + `/button>
+            <` + `/div>
+            
+            <` + `!-- Passenger Details -->
+            <` + `h6><` + `i class="bi bi-card-text"><` + `/i> Personal Details<` + `/h6>
+            <` + `div class="row g-3">
+                <` + `div class="col-md-6">
+                    <` + `label class="form-label">Full Name *<` + `/label>
+                    <` + `input type="text" name="passenger_name[]" class="form-control passenger-name" placeholder="Enter full name" required>
+                <` + `/div>
+                <` + `div class="col-md-6">
+                    <` + `label class="form-label">Email *<` + `/label>
+                    <` + `input type="email" name="passenger_email[]" class="form-control passenger-email" placeholder="example@email.com" required>
+                <` + `/div>
+                <` + `div class="col-md-4">
+                    <` + `label class="form-label">Phone *<` + `/label>
+                    <` + `input type="tel" name="passenger_phone[]" class="form-control passenger-phone" placeholder="+91 XXXXX XXXXX" required>
+                <` + `/div>
+                <` + `div class="col-md-4">
+                    <` + `label class="form-label">Alternative Phone<` + `/label>
+                    <` + `input type="tel" name="passenger_alt_phone[]" class="form-control passenger-alt-phone" placeholder="+91 XXXXX XXXXX">
+                <` + `/div>
+                <` + `div class="col-md-2">
+                    <` + `label class="form-label">Age *<` + `/label>
+                    <` + `input type="number" name="passenger_age[]" class="form-control passenger-age" placeholder="Age" min="0" max="120" required>
+                <` + `/div>
+                <` + `div class="col-md-2">
+                    <` + `label class="form-label">Gender *<` + `/label>
+                    <` + `select name="passenger_gender[]" class="form-select passenger-gender" required>
+                        <` + `option value="">Select<` + `/option>
+                        <` + `option value="Male">Male<` + `/option>
+                        <` + `option value="Female">Female<` + `/option>
+                        <` + `option value="Other">Other<` + `/option>
+                    <` + `/select>
+                <` + `/div>
+
+                <` + `div class="col-md-4">
+                    <` + `label class="form-label">City *<` + `/label>
+                    <` + `input type="text" name="passenger_city[]" class="form-control passenger-city" placeholder="Enter city" required>
+                <` + `/div>
+                <` + `div class="col-md-4">
+                    <` + `label class="form-label">State *<` + `/label>
+                    <` + `select name="passenger_state[]" class="form-select passenger-state state-select" required data-passenger-id="${passengerCounter}">
+                        <` + `option value="">Select State<` + `/option>
+                        <` + `option value="Andhra Pradesh">Andhra Pradesh<` + `/option>
+                        <` + `option value="Arunachal Pradesh">Arunachal Pradesh<` + `/option>
+                        <` + `option value="Assam">Assam<` + `/option>
+                        <` + `option value="Bihar">Bihar<` + `/option>
+                        <` + `option value="Chhattisgarh">Chhattisgarh<` + `/option>
+                        <` + `option value="Goa">Goa<` + `/option>
+                        <` + `option value="Gujarat">Gujarat<` + `/option>
+                        <` + `option value="Haryana">Haryana<` + `/option>
+                        <` + `option value="Himachal Pradesh">Himachal Pradesh<` + `/option>
+                        <` + `option value="Jharkhand">Jharkhand<` + `/option>
+                        <` + `option value="Karnataka">Karnataka<` + `/option>
+                        <` + `option value="Kerala">Kerala<` + `/option>
+                        <` + `option value="Madhya Pradesh">Madhya Pradesh<` + `/option>
+                        <` + `option value="Maharashtra">Maharashtra<` + `/option>
+                        <` + `option value="Manipur">Manipur<` + `/option>
+                        <` + `option value="Meghalaya">Meghalaya<` + `/option>
+                        <` + `option value="Mizoram">Mizoram<` + `/option>
+                        <` + `option value="Nagaland">Nagaland<` + `/option>
+                        <` + `option value="Odisha">Odisha<` + `/option>
+                        <` + `option value="Punjab">Punjab<` + `/option>
+                        <` + `option value="Rajasthan">Rajasthan<` + `/option>
+                        <` + `option value="Sikkim">Sikkim<` + `/option>
+                        <` + `option value="Tamil Nadu">Tamil Nadu<` + `/option>
+                        <` + `option value="Telangana">Telangana<` + `/option>
+                        <` + `option value="Tripura">Tripura<` + `/option>
+                        <` + `option value="Uttar Pradesh">Uttar Pradesh<` + `/option>
+                        <` + `option value="Uttarakhand">Uttarakhand<` + `/option>
+                        <` + `option value="West Bengal">West Bengal<` + `/option>
+                        <` + `option value="Delhi">Delhi<` + `/option>
+                        <` + `option value="Jammu and Kashmir">Jammu and Kashmir<` + `/option>
+                        <` + `option value="Ladakh">Ladakh<` + `/option>
+                    <` + `/select>
+                <` + `/div>
+                <` + `div class="col-md-4">
+                    <` + `label class="form-label">District *<` + `/label>
+                    <` + `select name="passenger_district[]" class="form-select passenger-district district-select" required data-passenger-id="${passengerCounter}">
+                        <` + `option value="">Select State First<` + `/option>
+                    <` + `/select>
+                <` + `/div>
+
+                <` + `!-- Guardian Selection (shown only for children 10 and under) -->
+                <` + `div class="col-md-12 guardian-field" style="display: none;">
+                    <` + `label class="form-label"><` + `i class="bi bi-shield-check"><` + `/i> Guardian *<` + `/label>
+                    <` + `select name="passenger_guardian[]" class="form-select guardian-select">
+                        <` + `option value="">Select Guardian (Must be 19+ years old)<` + `/option>
+                    <` + `/select>
+                    <` + `small class="text-warning d-block mt-1">
+                        <` + `i class="bi bi-info-circle"><` + `/i> Required for travelers under 5 years old
+                    <` + `/small>
+                <` + `/div>
+            <` + `/div>
+        <` + `/div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+
+        // Add event listeners for the newly added passenger
+        setupPassengerEventListeners();
+    }
+
+    // Setup event listeners for all passengers
+    function setupPassengerEventListeners() {
+        // Listen for age changes to show/hide guardian field
+        document.querySelectorAll('.passenger-age').forEach(ageInput => {
+            ageInput.removeEventListener('input', handleAgeChange);
+            ageInput.addEventListener('input', handleAgeChange);
+        });
+
+        // Listen for name, email, phone, gender changes to update guardian options
+        document.querySelectorAll('.passenger-name, .passenger-email, .passenger-phone, .passenger-gender').forEach(input => {
+            input.removeEventListener('input', updateGuardianOptions);
+            input.addEventListener('input', updateGuardianOptions);
+        });
+    }
+
+    // Handle age change to show/hide guardian field
+    function handleAgeChange(e) {
+        const passengerSection = e.target.closest('.passenger-section');
+        const age = parseInt(e.target.value);
+        const guardianField = passengerSection.querySelector('.guardian-field');
+        const guardianSelect = passengerSection.querySelector('.guardian-select');
+
+        if (age <= 10 && age > 0) {
+            guardianField.style.display = 'block';
+            guardianSelect.required = true;
+            updateGuardianOptions(); // Update guardian options for this child
+        } else {
+            guardianField.style.display = 'none';
+            guardianSelect.required = false;
+            guardianSelect.value = ''; // Clear selection
+        }
+    }
+
+    // Update guardian options for all children based on available adults
+    function updateGuardianOptions() {
+        const allPassengerSections = document.querySelectorAll('.passenger-section');
+
+        // Get all eligible guardians (age >= 19 with filled details)
+        const eligibleGuardians = [];
+
+        allPassengerSections.forEach((section, index) => {
+            const age = parseInt(section.querySelector('.passenger-age').value);
+            const name = section.querySelector('.passenger-name').value.trim();
+            const gender = section.querySelector('.passenger-gender').value;
+
+            // Guardian must be 19+ and have name filled
+            if (age >= 19 && name) {
+                eligibleGuardians.push({
+                    index: index,
+                    name: name,
+                    age: age,
+                    gender: gender,
+                    id: section.getAttribute('data-passenger-id')
+                });
+            }
+        });
+
+        // Update guardian dropdowns for children 10 and under
+        allPassengerSections.forEach((section, index) => {
+            const age = parseInt(section.querySelector('.passenger-age').value);
+            const guardianSelect = section.querySelector('.guardian-select');
+            const currentSelection = guardianSelect.value;
+
+            if (age <= 10 && age > 0) {
+                // Clear and rebuild options
+                guardianSelect.innerHTML = '<option value="">Select Guardian (Must be 19+ years old)</option>';
+
+                // Add eligible guardians (excluding self)
+                eligibleGuardians.forEach(guardian => {
+                    if (guardian.index !== index) {
+                        const option = document.createElement('option');
+                        option.value = guardian.id;
+                        option.textContent = `${guardian.name} (${guardian.age} yrs, ${guardian.gender})`;
+                        guardianSelect.appendChild(option);
+                    }
+                });
+
+                // Try to restore previous selection if it still exists
+                if (currentSelection) {
+                    const optionExists = Array.from(guardianSelect.options).some(opt => opt.value === currentSelection);
+                    if (optionExists) {
+                        guardianSelect.value = currentSelection;
+                    }
+                }
+
+                // Show warning if no guardians available
+                const warningDiv = section.querySelector('.guardian-field small');
+                if (eligibleGuardians.filter(g => g.index !== index).length === 0) {
+                    warningDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> No eligible guardians found. Please add a traveler aged 19+ with name filled.';
+                    warningDiv.className = 'text-danger d-block mt-1';
+                } else {
+                    warningDiv.innerHTML = '<i class="bi bi-info-circle"></i> Required for travelers 10 years old and under';
+                    warningDiv.className = 'text-warning d-block mt-1';
+                }
+            }
+        });
+    }
+
+    document.getElementById('addPassenger').addEventListener('click', addPassenger);
+
+    // Remove passenger functionality
+    document.addEventListener('click', function (e) {
+        if (e.target && e.target.classList.contains('remove-passenger')) {
+            e.target.closest('.passenger-section').remove();
+            // Update guardian options after removal
+            updateGuardianOptions();
+        }
+    });
+
+    // Form validation before submission
+    document.querySelector('form').addEventListener('submit', function (e) {
+        const allPassengerSections = document.querySelectorAll('.passenger-section');
+        let hasError = false;
+
+        allPassengerSections.forEach((section) => {
+            const age = parseInt(section.querySelector('.passenger-age').value);
+            const guardianSelect = section.querySelector('.guardian-select');
+
+            if (age <= 10 && age > 0 && !guardianSelect.value) {
+                hasError = true;
+                guardianSelect.classList.add('is-invalid');
+
+                // Add visual feedback
+                const warningDiv = section.querySelector('.guardian-field small');
+                warningDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> Please select a guardian for this child!';
+                warningDiv.className = 'text-danger d-block mt-1';
+            } else {
+                guardianSelect.classList.remove('is-invalid');
+            }
+        });
+
+        if (hasError) {
+            e.preventDefault();
+            alert('Please select a guardian for all travelers 10 years old and under.');
+            return false;
+        }
+    });
+
+    // State-District mapping
+    const stateDistrictMap = {
+        'Andhra Pradesh': ['ADILABAD', 'ANANTAPUR', 'CHITTOOR', 'EAST_GODAVARI', 'GUNTUR', 'HYDERABAD', 'Kadapa', 'KARIMNAGAR', 'KHAMMAM/BHADRACHALAM', 'KRISHNA', 'KURNOOL', 'MAHBUBNAGAR', 'MEDAK', 'NALGONDA', 'NELLORE', 'NIZAMABAD', 'PRAKASAM', 'RANGAREDDI', 'SRIKAKULAM', 'VISAKHAPATNAM', 'VIZIANAGARAM', 'WARANGAL', 'WEST_GODAVARI'],
+        'Arunachal Pradesh': ['ANJAW', 'CHANGLANG', 'EAST KAMENG', 'EAST SIANG', 'KURUNG KUMEY', 'LOHIT', 'LOWER DIBANG_VALLEY', 'LOWER SUBANSIRI', 'PAPUM PARE', 'TAWANG', 'TIRAP', 'UPPER DIBANG VALLEY', 'UPPER SIANG', 'UPPER SUBANSIRI', 'WEST KAMENG', 'WEST SIANG'],
+        'Assam': ['BAKSA', 'BARPETA', 'BONGAIGAON', 'CACHAR', 'CHIRANG', 'DARRANG', 'DHEMAJI', 'DHUBRI', 'DIBRUGARH', 'GOALPARA', 'GOLAGHAT', 'HAILAKANDI', 'JORHAT', 'KAMRUP', 'KARBI ANGLONG', 'KARIMGANJ', 'KOKRAJHAR', 'LAKHIMPUR', 'MARIGAON', 'NAGAON', 'NALBARI', 'NORTH_CACHAR_HILLS', 'SIBSAGAR', 'SONITPUR', 'TINSUKIA', 'UDALGURI'],
+        'Bihar': ['ARARIA', 'ARWAL', 'AURANGABAD-BI', 'BANKA', 'BEGUSARAI', 'BHAGALPUR', 'BHOJPUR', 'BUXAR', 'DARBHANGA', 'EAST CHAMPARAN', 'GAYA', 'GOPALGANJ', 'JAMUI', 'JEHANABAD', 'KAIMUR', 'KATIHAR', 'KHAGARIA', 'KISHANGANJ', 'LAKHISARAI', 'MADHEPURA', 'MADHUBANI', 'MUNGER', 'MUZAFFARPUR', 'NALANDA', 'NAWADA', 'PATNA', 'PURNIA', 'ROHTAS', 'SAHARSA', 'SAMASTIPUR', 'SARAN', 'SHEIKHPURA', 'SHEOHAR', 'SITAMARHI', 'SIWAN', 'SUPAUL', 'VAISHALI', 'WEST CHAMPARAN'],
+        'Chhattisgarh': ['BASTAR', 'BILASPUR-CG', 'DANTEWADA', 'DHAMTARI', 'DURG', 'JANJGIR', 'JASHPUR', 'KANKER', 'KAWARDHA/Kabir Dham', 'KORBA', 'KORIYA', 'MAHASAMUND', 'RAIGARH-CG', 'RAIPUR', 'RAJNANDGAON', 'SURGUJA (Ambikapur)'],
+        'Goa': ['GOA'],
+        'Gujarat': ['Ahmedabad', 'Amreli', 'Anand', 'Banaskantha', 'Bharuch', 'Bhavnagar', 'Dahod', 'Dang', 'Gandhinagar', 'Godhara', 'Jamnagar', 'Junagadh', 'Kheda', 'Kutch', 'Mahesana', 'Narmada', 'Navsari', 'Patan', 'Porbandar', 'Rajkot', 'Sabarkantha', 'Surat', 'Surendranagar', 'Vadodara', 'Valsad', 'Tapi'],
+        'Haryana': ['AMBALA', 'BHIWANI', 'FARIDABAD', 'FATEHABAD', 'GURGAON', 'HISAR', 'JHAJJAR', 'JIND', 'KAITHAL', 'KARNAL', 'KURUKSHETRA', 'MEWAT', 'NARNAUL', 'PALWAL', 'PANCHKULA', 'PANIPAT', 'REWARI', 'ROHTAK', 'SIRSA', 'SONIPAT', 'YAMUNANAGAR'],
+        'Himachal Pradesh': ['BILASPUR-HP', 'CHAMBA', 'HAMIRPUR-HP', 'KANGRA', 'KULLU', 'MANDI', 'SHIMLA', 'SIRMAUR', 'SOLAN', 'UNA'],
+        'Jharkhand': ['BOKARO', 'CHATRA', 'DEOGARH', 'DHANBAD', 'DUMKA', 'EAST SINGHBHUM', 'GARHWA', 'GIRIDIH', 'GODDA', 'GUMLA', 'HAZARIBAGH', 'JAMTARA', 'KODARMA', 'LATHEHAR', 'LOHARDAGA', 'PAKUR', 'PALAMU', 'RANCHI', 'SAHIBGANJ', 'SARAIKELA-KHARSAWAN', 'SIMDEGA', 'WEST SINGHBHUM'],
+        'Karnataka': ['BAGALKOT', 'BANGALORE RURAL', 'BANGALORE Urban', 'BELGAUM', 'BELLARY', 'BIDAR', 'BIJAPUR', 'CHAMARAJANAGAR', 'CHIKKABALLAPUR', 'CHIKMAGALUR', 'CHITRADURGA', 'DAKSHINA KANNADA', 'DAVANAGERE', 'DHARWAD', 'GADAG', 'GULBARGA', 'HASSAN', 'HAVERI', 'KODAGU', 'KOLAR', 'KOPPAL', 'MANDYA', 'MYSORE', 'RAICHUR', 'RAMANAGARA', 'SHIMOGA', 'TUMKUR', 'UDUPI', 'UTTARA_KANNADA'],
+        'Kerala': ['ALAPPUZHA', 'Ernakulam', 'IDUKKI', 'KANNUR', 'KASARAGOD', 'KOLLAM', 'KOTTAYAM', 'KOZHIKODE', 'MALAPPURAM', 'PALAKKAD', 'PATHANAMTHITTA', 'THIRUVANANTHAPURAM', 'THRISSUR', 'WAYANAD'],
+        'Madhya Pradesh': ['Anupur', 'ASHOK NAGAR', 'BALAGHAT', 'BARWANI', 'BETUL', 'BHIND', 'BHOPAL', 'BURHANPUR', 'CHHATARPUR', 'CHHINDWARA', 'DAMOH', 'DATIA', 'DEWAS', 'DHAR', 'DINDORI', 'GUNA', 'GWALIOR', 'HARDA', 'HOSHANGABAD', 'INDORE', 'JABALPUR', 'JHABUA', 'KATNI', 'KHANDWA', 'KHARGONE', 'MANDLA', 'MANDSAUR', 'MORENA', 'NARSINGHPUR', 'NEEMUCH', 'PANNA', 'RAISEN', 'RAJGARH', 'RATLAM', 'REWA', 'SAGAR', 'SATNA', 'SEONI', 'SHAHDOL', 'SHAJAPUR', 'SHEOPUR', 'SHIVPURI', 'SIDHI', 'TIKAMGARH', 'UJJAIN', 'UMARIA', 'VIDISHA'],
+        'Maharashtra': ['AHMEDNAGAR', 'AKOLA', 'AMARAVATI', 'AURANGABAD', 'BEED', 'BHANDARA', 'BULDANA', 'CHANDRAPUR', 'DHULE', 'GADCHIROLI', 'GONDIA', 'HINGOLI', 'JALGAON', 'JALNA', 'KOLHAPUR', 'LATUR', 'NAGPUR', 'NANDED', 'NANDURBAR', 'NASIK', 'OSMANABAD', 'PARBHANI', 'PUNE', 'RAIGAD', 'RATNAGIRI', 'SANGLI', 'SATARA', 'SINDHUDURG', 'SOLAPUR', 'THANE', 'WARDHA', 'WASHIM', 'YAWATMAL'],
+        'Manipur': ['BISHNUPUR', 'CHANDEL', 'CHURACHANDPUR', 'IMPHAL_EAST', 'IMPHAL_WEST', 'KANGPOKPI', 'SENAPATI', 'TAMENGLONG', 'THOUBAL', 'UKHRUL'],
+        'Meghalaya': ['BHOI', 'EAST GARO HILLS', 'EAST KHASI HILLS', 'JAINTIA HILLS', 'SOUTH GARO HILLS', 'WEST GARO HILLS', 'WEST KHASI HILLS'],
+        'Mizoram': ['Aizawal West', 'AIZAWL East', 'CHAMPHAI', 'KOLASIB', 'LAWNGTLAI', 'LUNGLEI', 'MAMIT', 'SAIHA', 'SERCHHIP'],
+        'Nagaland': ['DIMAPUR', 'KIPHIRE', 'KOHIMA', 'LONGLENG', 'MOKOKCHUNG', 'MON', 'PEREN', 'PHEK', 'TUENSANG', 'WOKHA', 'ZUNHEBOTO'],
+        'Odisha': ['ANGUL', 'BALANGIR', 'BALESHWAR', 'BARGARH', 'BAUDH', 'BHADRAK', 'CUTTACK', 'DEBAGARH', 'DHENKANAL', 'GAJAPATI', 'GANJAM', 'JAGATSINGHAPUR', 'JAJPUR', 'JHARSUGUDA', 'KALAHANDI', 'KANDHAMAL', 'KENDRAPARA', 'KEONJHAR', 'KHURDA', 'KORAPUT', 'MALKANGIRI', 'MAYURBHANJ', 'NABARANGAPUR', 'NAYAGARH', 'NUAPADA', 'PURI', 'RAYAGADA', 'SAMBALPUR', 'SONAPUR / SUBARNAPUR', 'SUNDARGARH'],
+        'Punjab': ['AMRITSAR', 'BATHINDA', 'BARNALA', 'FARIDKOT', 'FATEGARH SAHIB', 'FIROZPUR', 'GURDASPUR', 'HOSHIARPUR', 'JALANDHAR', 'KAPURTHALA', 'LUDHIANA', 'MANSA-PU', 'MOGA', 'MOHALI/SASNAGAR', 'MUKATSAR', 'NAWANSHAHR', 'PATIALA', 'RUPNAGAR/ROPAR', 'SANGRUR', 'TARN_TARAN'],
+        'Rajasthan': ['AJMER', 'ALWAR', 'BANSWARA', 'BARAN', 'BARMER', 'BHARATPUR', 'BHILWARA', 'BIKANER', 'BUNDI', 'CHITTAURGARH', 'CHURU', 'DAUSA', 'DHAULPUR', 'DUNGARPUR', 'GANGANAGAR', 'HANUMANGARH', 'JAIPUR', 'JAISALMER', 'JALORE', 'JHALAWAR', 'JHUNJHUNUN', 'JODHPUR', 'KARAULI', 'KOTA', 'NAGAUR', 'PALI', 'PRATAPGARH', 'RAJSAMAND', 'SAWAI_MADHOPUR', 'SIKAR', 'SIROHI', 'TONK', 'UDAIPUR'],
+        'Sikkim': ['EAST', 'NORTH', 'SOUTH', 'WEST'],
+        'Tamil Nadu': ['KANCHEEPURAM', 'SAIDAPET', 'THIRUVALLORE', 'POONAMALLEE', 'VELLORE', 'THIRUPPATTUR', 'TIRUVANNAMALAI', 'CHEYYAR', 'CUDDALORE', 'VILLUPURAM', 'KALLAKURICHI', 'THANJAVUR', 'THIRUVARUR', 'NAGAPATTINAM', 'THIRUCHIRAPALLI', 'KARUR', 'PERAMBALUR', 'PUDUKOTTAI', 'ARANTHANGI', 'MADURAI', 'THENI', 'DINDIGUL', 'PALANI', 'RAMANATHAPURAM', 'PARAMAKUDI', 'SIVAGANGA', 'VIRUDHUNAGAR', 'SIVAKASI', 'THIRUNELVELI', 'SANKARANKOIL', 'THOOTHUKUDI', 'KOVILPATTI', 'NAGERCOIL', 'SALEM', 'NAMAKKAL', 'DHARMAPURI', 'KRISHNAGIRI', 'COIMBATORE', 'THIRUPPUR', 'ERODE', 'DHARAPURAM', 'THE NILGIRIS', 'CHENNAI CORP'],
+        'Telangana': ['ADILABAD', 'HYDERABAD', 'KARIMNAGAR', 'KHAMMAM', 'MAHBUBNAGAR', 'MEDAK', 'NALGONDA', 'NIZAMABAD', 'RANGAREDDI', 'WARANGAL'],
+        'Tripura': ['EAST /DHALAI TRIPURA', 'NORTH_TRIPURA', 'SOUTH_TRIPURA', 'WEST_TRIPURA'],
+        'Uttar Pradesh': ['AGRA', 'ALIGARH', 'ALLAHABAD', 'AMBEDKAR_NAGAR', 'AURAIYA', 'AZAMGARH', 'BAGHPAT', 'BAHRAICH', 'BALLIA', 'BALRAMPUR', 'BANDA', 'BARABANKI', 'BAREILLY', 'BASTI', 'BIJNOR', 'BUDAUN', 'BULANDSHAHAR', 'CHANDAULI', 'CHITRAKOOT', 'DEORIA', 'ETAH', 'ETAWAH', 'FAIZABAD', 'FARRUKHABAD', 'FATEHPUR', 'FIROZABAD', 'GAUTAM_BUDH_NAGAR', 'GHAZIABAD', 'GHAZIPUR', 'GONDA', 'GORAKHPUR', 'HAMIRPUR-UP', 'HARDOI', 'HATHRAS/MAHAMAYANAGAR', 'JALAUN', 'JAUNPUR', 'JHANSI', 'JYOTIBA_PHULE_NAGAR', 'KANNAUJ', 'KANPUR NAGAR', 'KANPUR_DEHAT', 'KAUSHAMBI', 'KHERI', 'KUSHINAGAR', 'LALITPUR', 'LUCKNOW', 'MAHARAJGANJ', 'MAHOBA', 'MAINPURI', 'MATHURA', 'MAU', 'MEERUT', 'MIRZAPUR', 'MORADABAD', 'MUZAFFARNAGAR', 'PILIBHIT', 'PRATAPGARH', 'RAEBARELI', 'RAMPUR', 'SAHARANPUR', 'SANT_KABIR_NAGAR', 'SANT_RAVIDAS_NAGAR', 'SHAHJAHANPUR', 'SHRAVASTI', 'SIDDHARTHNAGAR', 'SITAPUR', 'SONBHADRA', 'SULTANPUR', 'UNNAO', 'VARANASI'],
+        'Uttarakhand': ['ALMORA', 'BAGESHWAR', 'CHAMOLI', 'CHAMPAWAT', 'DEHRADUN', 'PAURI GARHWAL', 'HARDWAR', 'NAINITAL', 'PITHORAGARH', 'RUDRAPRAYAG', 'TEHRI_GARHWAL', 'UDHAM SINGH NAGAR', 'UTTARKASHI'],
+        'West Bengal': ['BANKURA', 'BARDDHAMAN', 'BIRBHUM', 'COOCH BEHAR', 'DAKSHIN_DINAJPUR', 'DARJILING', 'EAST MEDINIPUR', 'HAORA / HOWRAH', 'HUGLY', 'JALPAIGURI', 'KOLKATA', 'MALDAH', 'MURSHIDABAD', 'NADIA', 'NORTH_24_PARGANAS', 'PURULIYA', 'SOUTH_24_PARGANAS', 'UTTAR_DINAJPUR', 'WEST MEDNAPUR'],
+        'Andaman and Nicobar Islands': ['ANDAMAN_NICOBAR_IS'],
+        'Chandigarh': ['CHANDIGARH'],
+        'Dadra and Nagar Haveli': ['DADRA_&_NAGAR_HAVELI'],
+        'Daman and Diu': ['Daman', 'DIU'],
+        'Delhi': ['Central Delhi', 'CITY ZONE', 'Civili Line', 'Karol Bagh', 'Najafgarh', 'NARELA', 'Rohini', 'S. Pahar Ganj', 'Shahadra (N)', 'Shahadra (S)', 'SOUTH', 'West Delhi'],
+        'Jammu and Kashmir': ['BARAMULA', 'DODA', 'JAMMU', 'KATHUA', 'KISHTWAR', 'POONCH', 'RAJOURI', 'RAMBAN', 'REASI', 'SAMBHA', 'UDHAMPUR'],
+        'Ladakh': ['Ladakh'],
+        'Lakshadweep': ['LAKSHADWEEP'],
+        'Puducherry': ['PONDICHERRY']
+    };
+
+    // Handle state change to populate districts
+    document.addEventListener('change', function (e) {
+        if (e.target && e.target.classList.contains('state-select')) {
+            const selectedState = e.target.value;
+            const passengerId = e.target.getAttribute('data-passenger-id');
+            const districtSelect = document.querySelector(`.district-select[data-passenger-id="${passengerId}"]`);
+
+            if (districtSelect) {
+                // Clear existing options
+                districtSelect.innerHTML = '<option value="">Select District</option>';
+
+                // Populate districts for selected state
+                if (selectedState && stateDistrictMap[selectedState]) {
+                    stateDistrictMap[selectedState].forEach(district => {
+                        const option = document.createElement('option');
+                        option.value = district;
+                        option.textContent = district;
+                        districtSelect.appendChild(option);
+                    });
+                } else {
+                    districtSelect.innerHTML = '<option value="">Select State First</option>';
+                }
+            }
+        }
+    });
+
+    // Add first passenger automatically on page load
+    window.addEventListener('DOMContentLoaded', function () {
+        addPassenger();
+    });
+</script>
+{% endblock %}

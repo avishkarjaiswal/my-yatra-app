@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+
+{% block title %}Yatra Memories - Dwarka Yatra{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="py-5 mt-5 text-center">
+    <div class="container">
+        <h1 class="display-4 fw-bold text-white mb-3">📸 Jaggannath Memories</h1>
+        <p class="lead text-white-50">Reliving Our Divine Journeys to Dwarka</p>
+    </div>
+</section>
+
+<!-- Photo Gallery Grid -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Gallery Image 1 -->
+            <div class="col-md-4">
+                <div class="gallery-card glassmorphism overflow-hidden rounded-3 shadow-lg">
+                    <img src="{{ url_for('static', filename='images/dwarka1.png') }}" alt="Dwarka Temple"
+                        class="gallery-img w-100" data-bs-toggle="modal" data-bs-target="#imageModal"
+                        data-image="{{ url_for('static', filename='images/dwarka1.png') }}"
+                        data-title="Majestic Dwarka Temple">
+                    <div class="gallery-overlay">
+                        <h5 class="text-white">Dwarka Temple</h5>
+                        <p class="text-white-50 small">Majestic temple architecture</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gallery Image 2 -->
+            <div class="col-md-4">
+                <div class="gallery-card glassmorphism overflow-hidden rounded-3 shadow-lg">
+                    <img src="{{ url_for('static', filename='images/dwarka2.png') }}" alt="Spiritual Gathering"
+                        class="gallery-img w-100" data-bs-toggle="modal" data-bs-target="#imageModal"
+                        data-image="{{ url_for('static', filename='images/dwarka2.png') }}"
+                        data-title="Spiritual Gathering">
+                    <div class="gallery-overlay">
+                        <h5 class="text-white">Spiritual Gathering</h5>
+                        <p class="text-white-50 small">Devotees in prayer</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gallery Image 3 -->
+            <div class="col-md-4">
+                <div class="gallery-card glassmorphism overflow-hidden rounded-3 shadow-lg">
+                    <img src="{{ url_for('static', filename='images/dwarka3.png') }}" alt="Coastal Dwarka"
+                        class="gallery-img w-100" data-bs-toggle="modal" data-bs-target="#imageModal"
+                        data-image="{{ url_for('static', filename='images/dwarka3.png') }}"
+                        data-title="Sacred Coastal City">
+                    <div class="gallery-overlay">
+                        <h5 class="text-white">Coastal Dwarka</h5>
+                        <p class="text-white-50 small">Where spirituality meets the sea</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gallery Image 4 -->
+            <div class="col-md-4">
+                <div class="gallery-card glassmorphism overflow-hidden rounded-3 shadow-lg">
+                    <img src="{{ url_for('static', filename='images/dwarka4.png') }}" alt="Temple Interior"
+                        class="gallery-img w-100" data-bs-toggle="modal" data-bs-target="#imageModal"
+                        data-image="{{ url_for('static', filename='images/dwarka4.png') }}"
+                        data-title="Ancient Architecture">
+                    <div class="gallery-overlay">
+                        <h5 class="text-white">Temple Interior</h5>
+                        <p class="text-white-50 small">Divine craftsmanship</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gallery Image 5 -->
+            <div class="col-md-4">
+                <div class="gallery-card glassmorphism overflow-hidden rounded-3 shadow-lg">
+                    <img src="{{ url_for('static', filename='images/dwarka5.png') }}" alt="Happy Pilgrims"
+                        class="gallery-img w-100" data-bs-toggle="modal" data-bs-target="#imageModal"
+                        data-image="{{ url_for('static', filename='images/dwarka5.png') }}"
+                        data-title="Joyful Pilgrims">
+                    <div class="gallery-overlay">
+                        <h5 class="text-white">Happy Pilgrims</h5>
+                        <p class="text-white-50 small">Creating lasting memories</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gallery Image 6 -->
+            <div class="col-md-4">
+                <div class="gallery-card glassmorphism overflow-hidden rounded-3 shadow-lg">
+                    <img src="{{ url_for('static', filename='images/1.jpg') }}" alt="Yatra Memory 1"
+                        class="gallery-img w-100" data-bs-toggle="modal" data-bs-target="#imageModal"
+                        data-image="{{ url_for('static', filename='images/1.jpg') }}"
+                        data-title="Beautiful Yatra Moments">
+                    <div class="gallery-overlay">
+                        <h5 class="text-white">Yatra Moments</h5>
+                        <p class="text-white-50 small">Cherished memories</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gallery Image 7 -->
+            <div class="col-md-6">
+                <div class="gallery-card glassmorphism overflow-hidden rounded-3 shadow-lg">
+                    <img src="{{ url_for('static', filename='images/2.jpg') }}" alt="Yatra Memory 2"
+                        class="gallery-img w-100" data-bs-toggle="modal" data-bs-target="#imageModal"
+                        data-image="{{ url_for('static', filename='images/2.jpg') }}"
+                        data-title="Divine Temple Experience">
+                    <div class="gallery-overlay">
+                        <h5 class="text-white">Temple Experience</h5>
+                        <p class="text-white-50 small">Sacred rituals and prayers</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gallery Image 8 -->
+            <div class="col-md-6">
+                <div class="gallery-card glassmorphism overflow-hidden rounded-3 shadow-lg">
+                    <img src="{{ url_for('static', filename='images/3.jpg') }}" alt="Yatra Memory 3"
+                        class="gallery-img w-100" data-bs-toggle="modal" data-bs-target="#imageModal"
+                        data-image="{{ url_for('static', filename='images/3.jpg') }}"
+                        data-title="Spiritual Celebrations">
+                    <div class="gallery-overlay">
+                        <h5 class="text-white">Celebrations</h5>
+                        <p class="text-white-50 small">Joyous spiritual gatherings</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gallery Image 9 -->
+            <div class="col-md-6">
+                <div class="gallery-card glassmorphism overflow-hidden rounded-3 shadow-lg">
+                    <img src="{{ url_for('static', filename='images/4.webp') }}" alt="Yatra Memory 4"
+                        class="gallery-img w-100" data-bs-toggle="modal" data-bs-target="#imageModal"
+                        data-image="{{ url_for('static', filename='images/4.webp') }}" data-title="Sacred Rituals">
+                    <div class="gallery-overlay">
+                        <h5 class="text-white">Sacred Rituals</h5>
+                        <p class="text-white-50 small">Traditional ceremonies</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gallery Image 10 -->
+            <div class="col-md-6">
+                <div class="gallery-card glassmorphism overflow-hidden rounded-3 shadow-lg">
+                    <img src="{{ url_for('static', filename='images/5.jpg') }}" alt="Yatra Memory 5"
+                        class="gallery-img w-100" data-bs-toggle="modal" data-bs-target="#imageModal"
+                        data-image="{{ url_for('static', filename='images/5.jpg') }}" data-title="Pilgrimage Memories">
+                    <div class="gallery-overlay">
+                        <h5 class="text-white">Pilgrimage</h5>
+                        <p class="text-white-50 small">Unforgettable journey</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 text-center">
+    <div class="container">
+        <div class="glassmorphism p-5 rounded-3">
+            <h2 class="text-white mb-3">Join Our Next Yatra</h2>
+            <p class="lead text-white-50 mb-4">Create your own beautiful memories with us</p>
+            <a href="{{ url_for('register') }}" class="btn btn-warning btn-lg px-5">
+                <i class="bi bi-calendar-check"></i> Register Now
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Image Modal for Full View -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white" id="imageModalLabel">Image</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-0">
+                <img id="modalImage" src="" alt="Full size image" class="img-fluid w-100">
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .gallery-card {
+        position: relative;
+        height: 300px;
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
+    }
+
+    .gallery-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 15px 40px rgba(255, 215, 0, 0.3) !important;
+    }
+
+    .gallery-img {
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .gallery-card:hover .gallery-img {
+        transform: scale(1.1);
+    }
+
+    .gallery-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+        padding: 20px;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+    }
+
+    .gallery-card:hover .gallery-overlay {
+        transform: translateY(0);
+    }
+
+    .modal-body img {
+        max-height: 80vh;
+        object-fit: contain;
+    }
+</style>
+
+<script>
+    // Handle modal image display
+    const imageModal = document.getElementById('imageModal');
+    imageModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const imageSrc = button.getAttribute('data-image');
+        const imageTitle = button.getAttribute('data-title');
+
+        const modalImage = document.getElementById('modalImage');
+        const modalTitle = document.getElementById('imageModalLabel');
+
+        modalImage.src = imageSrc;
+        modalTitle.textContent = imageTitle;
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,463 @@
+{% extends 'base.html' %}
+
+{% block step_indicator %}
+<div class="step-indicator-container">
+    <div class="container">
+        <div class="step-indicator">
+            <div class="step-item completed">
+                <div class="step-circle">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="step-label">Registration</div>
+            </div>
+            <div class="step-item completed">
+                <div class="step-circle">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="step-label">Package Selection</div>
+            </div>
+            <div class="step-item active">
+                <div class="step-circle">
+                    <i class="bi bi-file-text"></i>
+                </div>
+                <div class="step-label">Review Summary</div>
+            </div>
+            <div class="step-item">
+                <div class="step-circle">
+                    <i class="bi bi-credit-card"></i>
+                </div>
+                <div class="step-label">Payment</div>
+            </div>
+            <div class="step-item">
+                <div class="step-circle">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="step-label">Confirmation</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="py-5 mt-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card glassmorphism p-5">
+                    <div class="text-center mb-5">
+                        <h2 class="mb-3">
+                            <i class="bi bi-clipboard-check me-2" style="color: #ffc107;"></i>
+                            <span
+                                style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Registration
+                                Summary</span>
+                        </h2>
+                        <p class="text-white">Please review your booking details before proceeding to payment</p>
+                    </div>
+
+                    <!-- Summary Cards for Each Traveler -->
+                    {% for traveler in travelers %}
+                    <div class="traveler-card mb-4">
+                        <div class="traveler-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-person-fill me-2"></i>Traveler {{ loop.index }}: {{ traveler.name }}
+                            </h5>
+                        </div>
+                        <div class="traveler-body">
+                            <div class="row">
+                                <!-- Personal Information Column -->
+                                <div class="col-md-6 mb-3">
+                                    <h6 class="section-title mb-3">
+                                        <i class="bi bi-person-badge me-2"></i>Personal Information
+                                    </h6>
+                                    <div class="info-grid">
+                                        <div class="info-item">
+                                            <span class="info-label">Name:</span>
+                                            <span class="info-value">{{ traveler.name }}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Email:</span>
+                                            <span class="info-value">{{ traveler.email }}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Phone:</span>
+                                            <span class="info-value">{{ traveler.phone }}</span>
+                                        </div>
+                                        {% if traveler.alternative_phone %}
+                                        <div class="info-item">
+                                            <span class="info-label">Alt. Phone:</span>
+                                            <span class="info-value">{{ traveler.alternative_phone }}</span>
+                                        </div>
+                                        {% endif %}
+                                        <div class="info-item">
+                                            <span class="info-label">Age:</span>
+                                            <span class="info-value">{{ traveler.age }} years</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Gender:</span>
+                                            <span class="info-value">{{ traveler.gender }}</span>
+                                        </div>
+                                        {% if traveler.city %}
+                                        <div class="info-item">
+                                            <span class="info-label">City:</span>
+                                            <span class="info-value">{{ traveler.city }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if traveler.district %}
+                                        <div class="info-item">
+                                            <span class="info-label">District:</span>
+                                            <span class="info-value">{{ traveler.district }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if traveler.state %}
+                                        <div class="info-item">
+                                            <span class="info-label">State:</span>
+                                            <span class="info-value">{{ traveler.state }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Package Details Column -->
+                                <div class="col-md-6 mb-3">
+                                    <h6 class="section-title mb-3">
+                                        <i class="bi bi-box-seam me-2"></i>Package Details
+                                    </h6>
+                                    <div class="info-grid">
+                                        {% if traveler.journey_start_date %}
+                                        <div class="info-item">
+                                            <span class="info-label">Journey Dates:</span>
+                                            <span class="info-value">{{ traveler.journey_start_date }} to {{
+                                                traveler.journey_end_date }}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Duration:</span>
+                                            <span class="info-value">{{ traveler.num_days }} days</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if traveler.hotel_category %}
+                                        <div class="info-item">
+                                            <span class="info-label">Hotel Category:</span>
+                                            <span class="info-value">
+                                                <span class="badge-custom badge-hotel">{{
+                                                    traveler.hotel_category|capitalize }}</span>
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                        <div class="info-item">
+                                            <span class="info-label">Food Package:</span>
+                                            <span class="info-value">
+                                                <span class="badge-custom badge-food">Premium</span>
+                                            </span>
+                                        </div>
+                                        {% if traveler.travel_medium %}
+                                        <div class="info-item">
+                                            <span class="info-label">Travel Medium:</span>
+                                            <span class="info-value">
+                                                <span class="badge-custom badge-travel">{{
+                                                    traveler.travel_medium|capitalize }}</span>
+                                                {% if traveler.travel_medium in ['train', 'flight'] %}
+                                                <small class="text-white d-block mt-1">(Delhi to Dwarka)</small>
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                        {% if traveler.has_otm and traveler.otm_id %}
+                                        <div class="info-item">
+                                            <span class="info-label">OTM Status:</span>
+                                            <span class="info-value">
+                                                <span class="badge-custom badge-otm">
+                                                    <i class="bi bi-check-circle me-1"></i>Verified
+                                                </span>
+                                                <small class="text-muted d-block mt-1">ID: {{ traveler.otm_id }}</small>
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Price Breakdown -->
+                            <div class="price-section mt-4 pt-4">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-calculator me-2"></i>Total Amount for {{ traveler.name }}:
+                                    </h6>
+                                    <span class="price-tag">₹{{ traveler.amount|round|int }}</span>
+                                </div>
+                                {% if traveler.discount_note %}
+                                <div class="mt-2">
+                                    <small class="discount-badge">
+                                        <i class="bi bi-tag-fill me-1"></i>{{ traveler.discount_note }}
+                                    </small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Grand Total Section -->
+                    <div class="grand-total-card mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-1">
+                                    <i class="bi bi-cash-stack me-2"></i>Grand Total
+                                </h4>
+                                <small class="text-white">Total for {{ travelers|length }} traveler(s)</small>
+                            </div>
+                            <div class="grand-total-amount">₹{{ total_amount|round|int }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a href="{{ url_for('package_selection') }}" class="btn btn-outline-light w-100 btn-action">
+                                <i class="bi bi-arrow-left me-2"></i>Back to Edit
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <form method="POST" action="{{ url_for('confirm_and_pay') }}">
+                                <button type="submit" class="btn btn-gradient w-100 btn-action">
+                                    <i class="bi bi-check-circle me-2"></i>Confirm & Proceed to Payment
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Important Notice -->
+                    <div class="notice-box mt-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <span><strong>Note:</strong> Please review all details carefully. Once you proceed to payment,
+                            you won't be able to modify your booking.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Traveler Card Styling */
+    .traveler-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 193, 7, 0.2);
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .traveler-card:hover {
+        border-color: rgba(255, 193, 7, 0.4);
+        box-shadow: 0 8px 25px rgba(255, 193, 7, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .traveler-header {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 152, 0, 0.15) 100%);
+        border-bottom: 1px solid rgba(255, 193, 7, 0.2);
+        padding: 20px 25px;
+    }
+
+    .traveler-header h5 {
+        color: #ffc107;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .traveler-body {
+        padding: 25px;
+    }
+
+    /* Section Titles */
+    .section-title {
+        color: #ffc107;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid rgba(255, 193, 7, 0.3);
+        padding-bottom: 8px;
+    }
+
+    /* Info Grid */
+    .info-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.7);
+        min-width: 120px;
+    }
+
+    .info-value {
+        color: #fff;
+        text-align: right;
+        flex: 1;
+    }
+
+    /* Custom Badges */
+    .badge-custom {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-hotel {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .badge-food {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .badge-travel {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+    }
+
+    .badge-otm {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    /* Price Section */
+    .price-section {
+        background: rgba(255, 193, 7, 0.05);
+        border-top: 2px solid rgba(255, 193, 7, 0.2);
+        padding: 15px 0 0;
+    }
+
+    .price-tag {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ffc107;
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .discount-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    /* Grand Total Card */
+    .grand-total-card {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 152, 0, 0.1) 100%);
+        border: 2px solid rgba(255, 193, 7, 0.3);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.1);
+    }
+
+    .grand-total-amount {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 2px 10px rgba(255, 193, 7, 0.3);
+    }
+
+    /* Action Buttons */
+    .btn-action {
+        padding: 15px 30px;
+        font-weight: 600;
+        font-size: 1rem;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-light {
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+
+    .btn-outline-light:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-gradient {
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        border: none;
+        color: white;
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+    }
+
+    .btn-gradient:hover {
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+        color: white;
+    }
+
+    /* Notice Box */
+    .notice-box {
+        background: rgba(13, 202, 240, 0.1);
+        border: 1px solid rgba(13, 202, 240, 0.3);
+        border-radius: 10px;
+        padding: 15px 20px;
+        color: #0dcaf0;
+        display: flex;
+        align-items: center;
+    }
+
+    .notice-box i {
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .info-item {
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .info-label {
+            min-width: auto;
+        }
+
+        .info-value {
+            text-align: left;
+        }
+
+        .grand-total-amount {
+            font-size: 2rem;
+        }
+
+        .price-tag {
+            font-size: 1.25rem;
+        }
+    }
+</style>
+{% endblock %}
