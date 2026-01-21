@@ -1493,5 +1493,30 @@ def admin_generate_receipt(record_id):
         return redirect(url_for('admin_dashboard', table=table))
 
 
+@app.route('/debug-db')
+def debug_db():
+    try:
+        # verify admin login
+        if not session.get('admin_logged_in'):
+            return "Unauthorized", 401
+            
+        # Force create tables
+        with app.app_context():
+            db.create_all()
+            
+            # Inspect tables
+            from sqlalchemy import inspect
+            inspector = inspect(db.engine)
+            tables = inspector.get_table_names()
+            
+        return jsonify({
+            'status': 'success',
+            'message': 'Database tables created!',
+            'tables': tables,
+            'db_uri': app.config['SQLALCHEMY_DATABASE_URI'].split('@')[-1] # hide password
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
 if __name__ == '__main__':
     app.run(debug=True)
