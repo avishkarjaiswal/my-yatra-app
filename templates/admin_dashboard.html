@@ -17,6 +17,12 @@
                             <i class="bi bi-key-fill"></i> Generate OTM IDs
                         </button>
                         {% endif %}
+                        <form method="POST" action="{{ url_for('admin_cleanup_pending') }}" class="d-inline">
+                            <button type="submit" class="btn btn-danger me-2"
+                                onclick="return confirm('Delete all pending registrations older than 30 minutes?')">
+                                <i class="bi bi-trash3"></i> Cleanup Pending
+                            </button>
+                        </form>
                         <a href="{{ url_for('export_excel', table=current_table) }}" class="btn btn-success me-2">
                             <i class="bi bi-file-earmark-excel"></i> Export Excel
                         </a>

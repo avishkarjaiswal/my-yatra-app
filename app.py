@@ -437,6 +437,102 @@ def confirm_and_pay():
         flash('No booking data found. Please start from registration.', 'error')
         return redirect(url_for('register'))
     
+    # Save registrations with "Pending" status before payment
+    try:
+        from datetime import datetime
+        import uuid
+        
+        # Generate unique order IDs and save with Pending status
+        pending_order_ids = []
+        
+        for traveler in travelers_data:
+            # Parse dates if they exist
+            journey_start = None
+            journey_end = None
+            if traveler.get('journey_start_date'):
+                journey_start = datetime.strptime(traveler['journey_start_date'], '%Y-%m-%d').date()
+            if traveler.get('journey_end_date'):
+                journey_end = datetime.strptime(traveler['journey_end_date'], '%Y-%m-%d').date()
+            
+            # Generate a unique order ID
+            pending_order_id = f"PENDING_{uuid.uuid4().hex[:12].upper()}"
+            pending_order_ids.append(pending_order_id)
+            
+            # Determine which table to use based on OTM status
+            has_otm = traveler.get('has_otm', False)
+            
+            if has_otm:
+                # Create in PassengerInsider table with Pending status
+                passenger = PassengerInsider(
+                    name=traveler['name'],
+                    email=traveler['email'],
+                    phone=traveler['phone'],
+                    alternative_phone=traveler.get('alternative_phone'),
+                    age=traveler['age'],
+                    gender=traveler['gender'],
+                    city=traveler.get('city'),
+                    district=traveler.get('district'),
+                    state=traveler.get('state'),
+                    
+                    # Package component fields
+                    journey_start_date=journey_start,
+                    journey_end_date=journey_end,
+                    num_days=traveler.get('num_days'),
+                    hotel_category=traveler.get('hotel_category'),
+                    travel_medium=traveler.get('travel_medium'),
+                    has_otm=True,
+                    otm_id=traveler.get('otm_id'),
+
+                    yatra_class=traveler.get('package', 'N/A'),
+                    razorpay_order_id=pending_order_id,
+                    razorpay_payment_id=None,
+                    amount=traveler['amount'],
+                    payment_status='Pending'
+                )
+            else:
+                # Create in PassengerOutsider table with Pending status
+                passenger = PassengerOutsider(
+                    name=traveler['name'],
+                    email=traveler['email'],
+                    phone=traveler['phone'],
+                    alternative_phone=traveler.get('alternative_phone'),
+                    age=traveler['age'],
+                    gender=traveler['gender'],
+                    city=traveler.get('city'),
+                    district=traveler.get('district'),
+                    state=traveler.get('state'),
+                    
+                    # Package component fields
+                    journey_start_date=journey_start,
+                    journey_end_date=journey_end,
+                    num_days=traveler.get('num_days'),
+                    hotel_category=traveler.get('hotel_category'),
+                    travel_medium=traveler.get('travel_medium'),
+                    has_otm=False,
+                    otm_id=None,
+
+                    yatra_class=traveler.get('package', 'N/A'),
+                    razorpay_order_id=pending_order_id,
+                    razorpay_payment_id=None,
+                    amount=traveler['amount'],
+                    payment_status='Pending'
+                )
+            
+            db.session.add(passenger)
+        
+        # Commit all pending registrations
+        db.session.commit()
+        
+        # Store pending order IDs in session for later update
+        session['pending_order_ids'] = pending_order_ids
+        
+        print(f"[INFO] 📝 Saved {len(pending_order_ids)} pending registrations to database")
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"[ERROR] ❌ Failed to save pending registrations: {str(e)}")
+        # Continue to payment even if pending save fails (not critical)
+    
     # User confirmed, proceed to payment
     return redirect(url_for('create_payment'))
 
@@ -549,108 +645,141 @@ def verify_payment():
         
         # Get travelers data from session
         travelers_data = session.get('travelers_data')
+        pending_order_ids = session.get('pending_order_ids', [])
+        
         if not travelers_data:
             print(f"[ERROR] ❌ No travelers data found in session")
             return jsonify({'success': False, 'error': 'Session data not found'})
         
-        # Create passengers in database ONLY after successful payment
+        # Update pending passengers to Paid status
         passenger_ids = session_order_ids.split(',')
         all_passengers = []
         
         from datetime import datetime
         
-        for idx, (traveler, passenger_order_id) in enumerate(zip(travelers_data, passenger_ids)):
-            # Parse dates if they exist
-            journey_start = None
-            journey_end = None
-            if traveler.get('journey_start_date'):
-                journey_start = datetime.strptime(traveler['journey_start_date'], '%Y-%m-%d').date()
-            if traveler.get('journey_end_date'):
-                journey_end = datetime.strptime(traveler['journey_end_date'], '%Y-%m-%d').date()
+        # If we have pending order IDs, update those records
+        if pending_order_ids and len(pending_order_ids) == len(passenger_ids):
+            for pending_order_id, new_order_id in zip(pending_order_ids, passenger_ids):
+                # Try to find and update the pending record
+                pending_passenger = PassengerInsider.query.filter_by(
+                    razorpay_order_id=pending_order_id,
+                    payment_status='Pending'
+                ).first()
+                
+                if not pending_passenger:
+                    pending_passenger = PassengerOutsider.query.filter_by(
+                        razorpay_order_id=pending_order_id,
+                        payment_status='Pending'
+                    ).first()
+                
+                if pending_passenger:
+                    # Update the pending record
+                    pending_passenger.razorpay_order_id = new_order_id
+                    pending_passenger.razorpay_payment_id = razorpay_payment_id
+                    pending_passenger.payment_status = 'Paid'
+                    all_passengers.append(pending_passenger)
+                    print(f"[SUCCESS] ✅ Updated {pending_passenger.name} from Pending to Paid")
+                else:
+                    print(f"[WARNING] ⚠️ Pending record not found for {pending_order_id}, will create new record")
+        
+        # If we couldn't update pending records, create new ones (fallback)
+        if len(all_passengers) != len(travelers_data):
+            print(f"[INFO] 📝 Some pending records not found, creating new records as fallback")
+            all_passengers = []  # Clear and recreate
             
-            # Determine which table to use based on OTM status
-            has_otm = traveler.get('has_otm', False)
-            
-            if has_otm:
-                # Create in PassengerInsider table
-                passenger = PassengerInsider(
-                    name=traveler['name'],
-                    email=traveler['email'],
-                    phone=traveler['phone'],
-                    alternative_phone=traveler.get('alternative_phone'),
-                    age=traveler['age'],
-                    gender=traveler['gender'],
-                    city=traveler.get('city'),
-                    district=traveler.get('district'),
-                    state=traveler.get('state'),
-                    
-                    # Package component fields
-                    journey_start_date=journey_start,
-                    journey_end_date=journey_end,
-                    num_days=traveler.get('num_days'),
-                    hotel_category=traveler.get('hotel_category'),
-                    travel_medium=traveler.get('travel_medium'),
-                    has_otm=True,
-                    otm_id=traveler.get('otm_id'),
+            for idx, (traveler, passenger_order_id) in enumerate(zip(travelers_data, passenger_ids)):
+                # Parse dates if they exist
+                journey_start = None
+                journey_end = None
+                if traveler.get('journey_start_date'):
+                    journey_start = datetime.strptime(traveler['journey_start_date'], '%Y-%m-%d').date()
+                if traveler.get('journey_end_date'):
+                    journey_end = datetime.strptime(traveler['journey_end_date'], '%Y-%m-%d').date()
+                
+                # Determine which table to use based on OTM status
+                has_otm = traveler.get('has_otm', False)
+                
+                if has_otm:
+                    # Create in PassengerInsider table
+                    passenger = PassengerInsider(
+                        name=traveler['name'],
+                        email=traveler['email'],
+                        phone=traveler['phone'],
+                        alternative_phone=traveler.get('alternative_phone'),
+                        age=traveler['age'],
+                        gender=traveler['gender'],
+                        city=traveler.get('city'),
+                        district=traveler.get('district'),
+                        state=traveler.get('state'),
+                        
+                        # Package component fields
+                        journey_start_date=journey_start,
+                        journey_end_date=journey_end,
+                        num_days=traveler.get('num_days'),
+                        hotel_category=traveler.get('hotel_category'),
+                        travel_medium=traveler.get('travel_medium'),
+                        has_otm=True,
+                        otm_id=traveler.get('otm_id'),
 
-                    yatra_class=traveler.get('package', 'N/A'),
-                    razorpay_order_id=passenger_order_id,
-                    razorpay_payment_id=razorpay_payment_id,
-                    amount=traveler['amount'],
-                    payment_status='Paid'  # Direct to Paid status
-                )
-                print(f"[SUCCESS] ✅ Created PassengerInsider: {traveler['name']} with OTM: {traveler.get('otm_id')}")
-            else:
-                # Create in PassengerOutsider table
-                passenger = PassengerOutsider(
-                    name=traveler['name'],
-                    email=traveler['email'],
-                    phone=traveler['phone'],
-                    alternative_phone=traveler.get('alternative_phone'),
-                    age=traveler['age'],
-                    gender=traveler['gender'],
-                    city=traveler.get('city'),
-                    district=traveler.get('district'),
-                    state=traveler.get('state'),
-                    
-                    # Package component fields
-                    journey_start_date=journey_start,
-                    journey_end_date=journey_end,
-                    num_days=traveler.get('num_days'),
-                    hotel_category=traveler.get('hotel_category'),
-                    travel_medium=traveler.get('travel_medium'),
-                    has_otm=False,
-                    otm_id=None,
-
-                    yatra_class=traveler.get('package', 'N/A'),
-                    razorpay_order_id=passenger_order_id,
-                    razorpay_payment_id=razorpay_payment_id,
-                    amount=traveler['amount'],
-                    payment_status='Paid'  # Direct to Paid status
-                )
-                print(f"[SUCCESS] ✅ Created PassengerOutsider: {traveler['name']} (No OTM)")
-            
-            db.session.add(passenger)
-            all_passengers.append(passenger)
-            
-            # Handle OTM ID transfer from active to expired (only for insiders)
-            if isinstance(passenger, PassengerInsider) and passenger.has_otm and passenger.otm_id:
-                # Check if OTM ID exists in active table
-                otm_active = OTMActive.query.filter_by(id=passenger.otm_id).first()
-                if otm_active:
-                    # We need to flush to get the passenger ID for the OTM expired record
-                    db.session.flush()
-                    
-                    # Create expired record
-                    otm_expired = OTMExpired(
-                        id=passenger.otm_id,
-                        used_by_passenger_id=passenger.id
+                        yatra_class=traveler.get('package', 'N/A'),
+                        razorpay_order_id=passenger_order_id,
+                        razorpay_payment_id=razorpay_payment_id,
+                        amount=traveler['amount'],
+                        payment_status='Paid'  # Direct to Paid status
                     )
-                    # Remove from active table
-                    db.session.delete(otm_active)
-                    # Add to expired table
-                    db.session.add(otm_expired)
-                    print(f"[SUCCESS] ✅ Moved OTM ID {passenger.otm_id} from active to expired")
+                    print(f"[SUCCESS] ✅ Created PassengerInsider: {traveler['name']} with OTM: {traveler.get('otm_id')}")
+                else:
+                    # Create in PassengerOutsider table
+                    passenger = PassengerOutsider(
+                        name=traveler['name'],
+                        email=traveler['email'],
+                        phone=traveler['phone'],
+                        alternative_phone=traveler.get('alternative_phone'),
+                        age=traveler['age'],
+                        gender=traveler['gender'],
+                        city=traveler.get('city'),
+                        district=traveler.get('district'),
+                        state=traveler.get('state'),
+                        
+                        # Package component fields
+                        journey_start_date=journey_start,
+                        journey_end_date=journey_end,
+                        num_days=traveler.get('num_days'),
+                        hotel_category=traveler.get('hotel_category'),
+                        travel_medium=traveler.get('travel_medium'),
+                        has_otm=False,
+                        otm_id=None,
+
+                        yatra_class=traveler.get('package', 'N/A'),
+                        razorpay_order_id=passenger_order_id,
+                        razorpay_payment_id=razorpay_payment_id,
+                        amount=traveler['amount'],
+                        payment_status='Paid'  # Direct to Paid status
+                    )
+                    print(f"[SUCCESS] ✅ Created PassengerOutsider: {traveler['name']} (No OTM)")
+                
+                db.session.add(passenger)
+                all_passengers.append(passenger)
+            
+            # Handle OTM ID transfer from active to expired (for all passengers)
+            for passenger in all_passengers:
+                if isinstance(passenger, PassengerInsider) and passenger.has_otm and passenger.otm_id:
+                    # Check if OTM ID exists in active table
+                    otm_active = OTMActive.query.filter_by(id=passenger.otm_id).first()
+                    if otm_active:
+                        # We need to flush to get the passenger ID for the OTM expired record
+                        db.session.flush()
+                        
+                        # Create expired record
+                        otm_expired = OTMExpired(
+                            id=passenger.otm_id,
+                            used_by_passenger_id=passenger.id
+                        )
+                        # Remove from active table
+                        db.session.delete(otm_active)
+                        # Add to expired table
+                        db.session.add(otm_expired)
+                        print(f"[SUCCESS] ✅ Moved OTM ID {passenger.otm_id} from active to expired")
         
         try:
             db.session.commit()
@@ -1539,6 +1668,64 @@ def debug_db():
     except Exception as e:
         return jsonify({'error': str(e)})
 
+def cleanup_pending_registrations(minutes=30):
+    """
+    Delete pending registrations older than specified minutes.
+    This cleans up abandoned registrations where users didn't complete payment.
+    """
+    try:
+        from datetime import timedelta
+        from models import get_india_time
+        
+        cutoff_time = get_india_time() - timedelta(minutes=minutes)
+        
+        # Delete old pending insiders
+        pending_insiders = PassengerInsider.query.filter(
+            PassengerInsider.payment_status == 'Pending',
+            PassengerInsider.created_at < cutoff_time
+        ).all()
+        
+        # Delete old pending outsiders
+        pending_outsiders = PassengerOutsider.query.filter(
+            PassengerOutsider.payment_status == 'Pending',
+            PassengerOutsider.created_at < cutoff_time
+        ).all()
+        
+        deleted_count = len(pending_insiders) + len(pending_outsiders)
+        
+        if deleted_count > 0:
+            for passenger in pending_insiders:
+                db.session.delete(passenger)
+            for passenger in pending_outsiders:
+                db.session.delete(passenger)
+            
+            db.session.commit()
+            print(f"[CLEANUP] 🧹 Deleted {deleted_count} pending registrations older than {minutes} minutes")
+        else:
+            print(f"[CLEANUP] ✓ No pending registrations to clean up")
+            
+        return deleted_count
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"[ERROR] ❌ Cleanup failed: {str(e)}")
+        return 0
+
+@app.route('/admin/cleanup-pending', methods=['POST'])
+@login_required
+def admin_cleanup_pending():
+    """Admin route to manually trigger cleanup of pending registrations"""
+    try:
+        deleted_count = cleanup_pending_registrations(minutes=30)
+        flash(f'Cleanup complete: {deleted_count} pending registrations deleted', 'success')
+    except Exception as e:
+        flash(f'Cleanup failed: {str(e)}', 'error')
+    
+    return redirect(url_for('admin_dashboard'))
+
 # Force update - v2
 if __name__ == '__main__':
+    with app.app_context():
+        # Cleanup old pending registrations on startup
+        cleanup_pending_registrations(minutes=30)
     app.run(debug=True)

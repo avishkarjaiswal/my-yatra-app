@@ -40,6 +40,76 @@
 {% endblock %}
 
 {% block content %}
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+<style>
+    /* Custom Flatpickr Theme to match Gold/Dark design */
+    .flatpickr-calendar {
+        background: rgba(33, 37, 41, 0.95) !important;
+        border: 1px solid rgba(255, 193, 7, 0.3) !important;
+        backdrop-filter: blur(10px) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .flatpickr-day.selected,
+    .flatpickr-day.startRange,
+    .flatpickr-day.endRange,
+    .flatpickr-day.selected.inRange,
+    .flatpickr-day.startRange.inRange,
+    .flatpickr-day.endRange.inRange,
+    .flatpickr-day.selected:focus,
+    .flatpickr-day.startRange:focus,
+    .flatpickr-day.endRange:focus,
+    .flatpickr-day.selected:hover,
+    .flatpickr-day.startRange:hover,
+    .flatpickr-day.endRange:hover,
+    .flatpickr-day.selected.prevMonthDay,
+    .flatpickr-day.startRange.prevMonthDay,
+    .flatpickr-day.endRange.prevMonthDay,
+    .flatpickr-day.selected.nextMonthDay,
+    .flatpickr-day.startRange.nextMonthDay,
+    .flatpickr-day.endRange.nextMonthDay {
+        background: #ffc107 !important;
+        border-color: #ffc107 !important;
+        color: #000 !important;
+        font-weight: 700 !important;
+    }
+
+    .flatpickr-day:hover {
+        background: rgba(255, 193, 7, 0.2) !important;
+        border-color: transparent !important;
+    }
+
+    .flatpickr-months .flatpickr-month {
+        color: #fff !important;
+        fill: #fff !important;
+    }
+
+    .flatpickr-current-month .flatpickr-monthDropdown-months {
+        background: transparent !important;
+    }
+
+    .flatpickr-current-month .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month {
+        background-color: #212529;
+    }
+
+    .flatpickr-weekday {
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    .flatpickr-input[readonly] {
+        background-color: rgba(0, 0, 0, 0.3) !important;
+        color: white !important;
+        cursor: pointer;
+    }
+
+    .flatpickr-input[readonly]:disabled {
+        cursor: not-allowed;
+        background-color: rgba(0, 0, 0, 0.4) !important;
+        color: rgba(255, 255, 255, 0.5) !important;
+    }
+</style>
 <section class="py-5 mt-5">
     <div class="container">
         <div class="row justify-content-center">
@@ -93,7 +163,7 @@
                                             <label class="form-label">
                                                 <i class="bi bi-calendar-check"></i> Journey Start Date *
                                             </label>
-                                            <input type="date" name="start_date_{{ idx }}"
+                                            <input type="text" name="start_date_{{ idx }}"
                                                 class="form-control start-date" data-idx="{{ idx }}" min="2026-01-31"
                                                 max="2026-02-05" value="2026-01-31" required {% if traveler.age <=10
                                                 %}disabled{% endif %}>
@@ -102,7 +172,7 @@
                                             <label class="form-label">
                                                 <i class="bi bi-calendar-x"></i> Journey End Date *
                                             </label>
-                                            <input type="date" name="end_date_{{ idx }}" class="form-control end-date"
+                                            <input type="text" name="end_date_{{ idx }}" class="form-control end-date"
                                                 data-idx="{{ idx }}" min="2026-01-31" max="2026-02-05"
                                                 value="2026-02-05" required {% if traveler.age <=10 %}disabled{% endif
                                                 %}>
@@ -550,6 +620,30 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Initialize Flatpickr for date inputs
+        flatpickr(".start-date, .end-date", {
+            dateFormat: "Y-m-d",     // Format sent to server
+            altInput: true,          // Enable alternative input for display
+            altFormat: "d/m/Y",      // Format shown to user (dd/MM/yyyy)
+            disableMobile: true,     // Force Flatpickr UI on mobile
+            allowInput: true,        // Allow manual entry if needed
+            locale: {
+                firstDayOfWeek: 1    // Start week on Monday
+            },
+            onReady: function (selectedDates, dateStr, instance) {
+                // Read min and max attributes from the original element
+                const minDate = instance.element.getAttribute('min');
+                const maxDate = instance.element.getAttribute('max');
+
+                if (minDate) instance.set('minDate', minDate);
+                if (maxDate) instance.set('maxDate', maxDate);
+            }
+        });
+    });
+</script>
 <!-- Hidden JSON data for JavaScript -->
 <script id="pricing-data" type="application/json">
 {

@@ -1,7 +1,14 @@
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timedelta
 
 db = SQLAlchemy()
+
+# Utility function to get India time (IST = UTC+5:30)
+def get_india_time():
+    """Returns current time in India Standard Time (IST)"""
+    utc_now = datetime.utcnow()
+    ist_offset = timedelta(hours=5, minutes=30)
+    return utc_now + ist_offset
 
 class PassengerInsider(db.Model):
     """Represents a traveler who has OTM (One Time Membership)"""
@@ -38,7 +45,7 @@ class PassengerInsider(db.Model):
     payment_status = db.Column(db.String(20), default='Pending')  # Pending, Paid, Failed
     
     # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_india_time)
     
     def __repr__(self):
         return f'<PassengerInsider {self.name} - OTM: {self.otm_id}>'
@@ -78,7 +85,7 @@ class PassengerOutsider(db.Model):
     payment_status = db.Column(db.String(20), default='Pending')  # Pending, Paid, Failed
     
     # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_india_time)
     
     def __repr__(self):
         return f'<PassengerOutsider {self.name}>'
@@ -87,7 +94,7 @@ class OTMActive(db.Model):
     """Tracks valid/active OTM IDs that can be used"""
     __tablename__ = 'otm_active'
     id = db.Column(db.String(50), primary_key=True)  # OTM ID itself is the primary key
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_india_time)
     
     def __repr__(self):
         return f'<OTMActive {self.id}>'
@@ -97,7 +104,7 @@ class OTMExpired(db.Model):
     __tablename__ = 'otm_expired'
     id = db.Column(db.String(50), primary_key=True)  # OTM ID itself is the primary key
     used_by_passenger_id = db.Column(db.Integer, nullable=True)  # Reference to passenger who used it
-    expired_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expired_at = db.Column(db.DateTime, default=get_india_time)
     
     def __repr__(self):
         return f'<OTMExpired {self.id}>'

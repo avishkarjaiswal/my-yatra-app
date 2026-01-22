@@ -62,18 +62,21 @@ auto;">
 
                     <form action="{{ url_for('register') }}" method="POST">
 
-                        <div class="d-flex justify-content-between align-items-center mb-4 p-3 rounded"
+                        <div class="d-flex align-items-center mb-4 p-3 rounded"
                             style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.2);">
                             <h4 class="mb-0" style="color: #ffc107;">
                                 <i class="bi bi-people-fill"></i> Travelers
                             </h4>
-                            <button type="button" class="btn btn-primary" id="addPassenger">
-                                <i class="bi bi-plus-circle"></i> Add Traveler
-                            </button>
                         </div>
 
                         <div id="passengerContainer">
                             <!-- Passenger sections will be added here -->
+                        </div>
+
+                        <div class="d-flex justify-content-center mt-3 mb-3">
+                            <button type="button" class="btn btn-primary" id="addPassenger">
+                                <i class="bi bi-plus-circle"></i> Add Traveler
+                            </button>
                         </div>
 
                         <div class="d-grid mt-4">
@@ -277,7 +280,7 @@ auto;">
         const html = `
         <` + `div class="passenger-section" data-passenger-id="${passengerCounter}">
             <` + `div class="d-flex justify-content-between align-items-center mb-3">
-                <` + `h5><` + `i class="bi bi-person-badge"><` + `/i> Traveler ${passengerCounter}<` + `/h5>
+                <` + `h5><` + `i class="bi bi-person-badge"><` + `/i> Traveler <` + `/h5>
                 <` + `button type="button" class="btn btn-danger btn-sm remove-passenger">
                     <` + `i class="bi bi-trash"><` + `/i> Remove
                 <` + `/button>
@@ -495,6 +498,14 @@ auto;">
     // Form validation before submission
     document.querySelector('form').addEventListener('submit', function (e) {
         const allPassengerSections = document.querySelectorAll('.passenger-section');
+
+        // Check if at least one traveler is added
+        if (allPassengerSections.length === 0) {
+            e.preventDefault();
+            alert('Please add at least one traveler by clicking the "Add Traveler" button.');
+            return false;
+        }
+
         let hasError = false;
 
         allPassengerSections.forEach((section) => {
@@ -588,9 +599,8 @@ auto;">
         }
     });
 
-    // Add first passenger automatically on page load
-    window.addEventListener('DOMContentLoaded', function () {
-        addPassenger();
-    });
+    // Automatically add the first passenger
+    addPassenger();
+
 </script>
 {% endblock %}
