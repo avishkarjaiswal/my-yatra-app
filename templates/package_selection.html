@@ -699,67 +699,107 @@
             travelerAge = parseInt(travelerSection.getAttribute('data-age')) || 18;
         }
 
-        // Get hotel selection
-        const hotelRadio = document.querySelector(`input[name="hotel_${idx}"]:checked`);
-        const hotelType = hotelRadio ? hotelRadio.value : 'basic';
-        const baseHotelPrice = packagePricing.hotel[hotelType];
+        // Check for OTM Verification and Youth OTM Flag
+        const otmBtn = document.querySelector(`.verify-otm-btn[data-idx="${idx}"]`);
+        const isOtmVerified = otmBtn && otmBtn.getAttribute('data-verified') === 'true';
+        const isYouthOtm = otmBtn && otmBtn.getAttribute('data-is-youth-otm') === 'true';
 
-        // Get travel selection
-        const travelSelect = document.querySelector(`select[name="travel_${idx}"]`);
-        const travelType = travelSelect.value;
-        const travelPrice = packagePricing.travel[travelType];
+        let finalPrice = 0;
+        let breakdownHTML = '';
 
-        // Calculate base costs
-        const baseHotelCost = baseHotelPrice * numDays;
-        const baseFoodCost = packagePricing.food * numDays;
+        if (isYouthOtm) {
+            // --- YOUTH OTM PACKAGE ---
+            // Fixed Price ₹5000 with Basic Hotel + Train Travel
+            finalPrice = 5000;
 
-        // Apply age-based discounts for hotel and food
-        let hotelCost, foodCost, discountNote = '';
-
-        if (travelerAge <= 5) {
-            // Children 5 and under: FREE hotel and food
-            hotelCost = 0;
-            foodCost = 0;
-            discountNote = 'Child (≤5 years): Free hotel & food';
-        } else if (travelerAge >= 6 && travelerAge <= 10) {
-            // Children 6-10: 50% discount on hotel and food
-            hotelCost = baseHotelCost * 0.5;
-            foodCost = baseFoodCost * 0.5;
-            discountNote = 'Child (6-10 years): 50% off hotel & food';
-        } else {
-            // Adults: Full price
-            hotelCost = baseHotelCost;
-            foodCost = baseFoodCost;
-        }
-
-        // Travel cost is NOT included in total (Pay Later model)
-        const travelCost = 0;
-        const subtotal = hotelCost + foodCost + travelCost;
-
-        // OTM doesn't affect pricing, just captures membership status
-        const finalPrice = subtotal;
-
-        // Update breakdown with discount information
-        // Determine travel cost display
-        let travelCostDisplay = travelType === 'self' ? '₹0' : 'Pay Later';
-        let travelCostClass = travelType === 'self' ? '' : 'text-warning';
-
-        let breakdownHTML = `
-            <div class="col-6"><small>Hotel (${hotelType}): ${numDays} days</small></div>
-            <div class="col-6 text-end"><small>₹${Math.round(hotelCost)}</small></div>
-            <div class="col-6"><small>Food (Premium): ${numDays} days</small></div>
-            <div class="col-6 text-end"><small>₹${Math.round(foodCost)}</small></div>
-            <div class="col-6"><small>Travel (${travelType}):</small></div>
-            <div class="col-6 text-end"><small class="${travelCostClass}">${travelCostDisplay}</small></div>
-        `;
-
-        // Add discount note if applicable
-        if (discountNote) {
-            breakdownHTML += `
-                <div class="col-12 mt-2">
-                    <small class="text-white"><i class="bi bi-tag-fill"></i> ${discountNote}</small>
+            breakdownHTML = `
+                <div class="col-12 text-center text-warning mb-2">
+                    <strong><i class="bi bi-star-fill"></i> Youth OTM Package - ₹5000 Fixed <i class="bi bi-star-fill"></i></strong>
+                </div>
+                <div class="col-6"><small>Hotel (Basic): Included</small></div>
+                <div class="col-6 text-end"><small class="text-success">✔</small></div>
+                <div class="col-6"><small>Food (Premium): Included</small></div>
+                <div class="col-6 text-end"><small class="text-success">✔</small></div>
+                <div class="col-6"><small>Travel (Train): Pay Later</small></div>
+                <div class="col-6 text-end"><small class="text-warning">Charges Apply</small></div>
+                <div class="col-12 mt-2 pt-2 border-top border-secondary">
+                     <small class="text-white">Total Package: ₹5000 (Excl. Train)</small>
                 </div>
             `;
+
+
+        } else {
+            // --- STANDARD LOGIC (Standard OTM or No OTM) ---
+            // Standard OTM just unlocks travel, doesn't change price calculation
+
+            // Get hotel selection
+            const hotelRadio = document.querySelector(`input[name="hotel_${idx}"]:checked`);
+            const hotelType = hotelRadio ? hotelRadio.value : 'basic';
+            const baseHotelPrice = packagePricing.hotel[hotelType];
+
+            // Get travel selection
+            const travelSelect = document.querySelector(`select[name="travel_${idx}"]`);
+            const travelType = travelSelect.value;
+            const travelPrice = packagePricing.travel[travelType];
+
+            // Calculate base costs
+            const baseHotelCost = baseHotelPrice * numDays;
+            const baseFoodCost = packagePricing.food * numDays;
+
+            // Apply age-based discounts for hotel and food
+            let hotelCost, foodCost, discountNote = '';
+
+            if (travelerAge <= 5) {
+                // Children 5 and under: FREE hotel and food
+                hotelCost = 0;
+                foodCost = 0;
+                discountNote = 'Child (≤5 years): Free hotel & food';
+            } else if (travelerAge >= 6 && travelerAge <= 10) {
+                // Children 6-10: 50% discount on hotel and food
+                hotelCost = baseHotelCost * 0.5;
+                foodCost = baseFoodCost * 0.5;
+                discountNote = 'Child (6-10 years): 50% off hotel & food';
+            } else {
+                // Adults: Full price
+                hotelCost = baseHotelCost;
+                foodCost = baseFoodCost;
+            }
+
+            // Travel cost is NOT included in total (Pay Later model)
+            const travelCost = 0;
+            const subtotal = hotelCost + foodCost + travelCost;
+            finalPrice = subtotal;
+
+            // Determine travel cost display
+            let travelCostDisplay = travelType === 'self' ? '₹0' : 'Pay Later';
+            let travelCostClass = travelType === 'self' ? '' : 'text-warning';
+
+            breakdownHTML = `
+                <div class="col-6"><small>Hotel (${hotelType}): ${numDays} days</small></div>
+                <div class="col-6 text-end"><small>₹${Math.round(hotelCost)}</small></div>
+                <div class="col-6"><small>Food (Premium): ${numDays} days</small></div>
+                <div class="col-6 text-end"><small>₹${Math.round(foodCost)}</small></div>
+                <div class="col-6"><small>Travel (${travelType}):</small></div>
+                <div class="col-6 text-end"><small class="${travelCostClass}">${travelCostDisplay}</small></div>
+            `;
+
+            // Show OTM Verified badge if verified (Standard)
+            if (isOtmVerified) {
+                breakdownHTML = `
+                    <div class="col-12 text-center text-success mb-2">
+                        <small><i class="bi bi-shield-check"></i> OTM Verified (Booking Unlocked)</small>
+                    </div>
+                ` + breakdownHTML;
+            }
+
+            // Add discount note if applicable
+            if (discountNote) {
+                breakdownHTML += `
+                    <div class="col-12 mt-2">
+                        <small class="text-white"><i class="bi bi-tag-fill"></i> ${discountNote}</small>
+                    </div>
+                `;
+            }
         }
 
         document.getElementById(`breakdown_${idx}`).innerHTML = breakdownHTML;
@@ -958,21 +998,88 @@
                     if (data.valid) {
                         // Success
                         otmStatus.className = 'alert alert-success alert-sm mt-2';
-                        otmStatus.innerHTML = `<i class="bi bi-check-circle-fill"></i> ${data.message}`;
-                        otmInput.disabled = true;
+                        this.setAttribute('data-verified', 'true');
+                        this.setAttribute('data-otm-type', data.otm_type); // Store type for backward compatibility
+                        this.setAttribute('data-is-youth-otm', data.is_youth_otm ? 'true' : 'false'); // Store youth OTM flag
+
+                        // Handle Logic based on Youth OTM
+                        if (data.is_youth_otm) {
+                            // === YOUTH OTM ===
+                            otmStatus.innerHTML = `<i class="bi bi-star-fill text-warning"></i> ${data.message} - Youth Package (₹5000 Fixed)!`;
+
+                            // FORCE Youth OTM PACKAGE: Basic Hotel + Train Travel (Locked)
+                            // 1. Set Hotel to Basic and lock it
+                            const basicHotelRadio = document.querySelector(`input[name="hotel_${idx}"][value="basic"]`);
+                            if (basicHotelRadio) basicHotelRadio.checked = true;
+
+                            // Disable all hotel radios (lock the selection)
+                            document.querySelectorAll(`input[name="hotel_${idx}"]`).forEach(r => r.disabled = true);
+
+                            // 2. Set Travel to Train and lock it
+                            const travelCheckbox = document.getElementById(`travel_enable_${idx}`);
+                            const travelSelect = document.getElementById(`travel_select_${idx}`);
+
+                            // Enable and check travel booking
+                            if (travelCheckbox) {
+                                travelCheckbox.disabled = false;
+                                travelCheckbox.checked = true;
+                                travelCheckbox.disabled = true; // Lock it
+                            }
+
+                            // Set to Train and lock
+                            if (travelSelect) {
+                                travelSelect.disabled = false;
+                                travelSelect.value = 'train';
+
+                                // Show Youth OTM train info
+                                const travelInfo = document.getElementById(`travel_info_${idx}`);
+                                if (travelInfo) {
+                                    travelInfo.innerHTML = `
+                                       <div class="alert alert-success" style="background: rgba(40, 167, 69, 0.2); border: 1px solid rgba(40, 167, 69, 0.5); margin-top: 10px; color: #fff;">
+                                           <i class="bi bi-train-front-fill"></i> <strong>Train Selected</strong><br>
+                                           Train travel will be paid for separately later. Not included in ₹5000 package.
+                                       </div>
+                                   `;
+                                    travelInfo.style.display = 'block';
+                                }
+                                // Lock the selection
+                                travelSelect.disabled = true;
+                            }
+
+                            // Hide travel lock message since it's now locked to train
+                            const lockMsg = document.getElementById(`travel_lock_msg_${idx}`);
+                            if (lockMsg) {
+                                lockMsg.innerHTML = '<i class="bi bi-lock-fill text-warning"></i> Youth Package: Train travel locked';
+                            }
+
+                        } else {
+                            // === STANDARD OTM ===
+                            otmStatus.innerHTML = `<i class="bi bi-check-circle-fill"></i> ${data.message}`;
+                            // Just unlock travel booking, let user choose
+                            unlockTravelBooking(idx);
+                        }
+
+                        otmInput.readOnly = true;  // Use readonly instead of disabled so value is submitted!
+                        otmInput.style.backgroundColor = 'rgba(40, 167, 69, 0.2)';  // Visual feedback
                         this.disabled = true;
                         this.innerHTML = '<i class="bi bi-check-circle-fill"></i> Verified';
                         this.classList.remove('btn-warning');
                         this.classList.add('btn-success');
 
-                        // Unlock travel booking
-                        unlockTravelBooking(idx);
+                        // Recalculate Logic will check 'data-otm-type' to decide pricing
+                        calculateGrandTotal();
+
+                        // Sync to children if guardian
+                        syncGuardianToChildren(idx);
+
                     } else {
                         // Error
                         otmStatus.className = 'alert alert-danger alert-sm mt-2';
                         otmStatus.innerHTML = `<i class="bi bi-x-circle-fill"></i> ${data.message}`;
                         this.disabled = false;
                         this.innerHTML = '<i class="bi bi-shield-check"></i> Verify';
+                        this.setAttribute('data-verified', 'false');
+                        this.removeAttribute('data-otm-type');
                     }
                 })
                 .catch(error => {

@@ -92,6 +92,73 @@ auto;">
     </div>
 </section>
 
+<!-- Terms & Conditions Disclaimer Modal -->
+<div class="modal fade" id="disclaimerModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="disclaimerModalLabel" aria-hidden="true" style="z-index: 10000; background: rgba(0,0,0,0.8);">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content"
+            style="background: linear-gradient(135deg, rgba(20, 20, 40, 0.95), rgba(40, 40, 80, 0.95)); border: 1px solid rgba(255, 193, 7, 0.3); color: white; box-shadow: 0 0 20px rgba(255, 193, 7, 0.2);">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title w-100 text-center" id="disclaimerModalLabel"
+                    style="color: #ffc107; font-weight: 700; font-size: 1.5rem;">
+                    <i class="bi bi-file-earmark-text-fill me-2"></i>Dwarka Yatra - Terms & Conditions
+                </h5>
+            </div>
+            <div class="modal-body p-4">
+                <div class="alert alert-warning d-flex align-items-center mb-3" role="alert"
+                    style="background: rgba(255, 193, 7, 0.1); border-color: rgba(255, 193, 7, 0.3); color: #ffd700;">
+                    <i class="bi bi-info-circle-fill me-3 fs-4"></i>
+                    <div>
+                        <strong>Please read carefully:</strong> You must agree to the following terms to proceed with
+                        registration.
+                    </div>
+                </div>
+
+                <div class="terms-content p-3 rounded"
+                    style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); max-height: 300px; overflow-y: auto;">
+                    <ul class="list-unstyled mb-0" style="color: rgba(255, 255, 255, 0.9); line-height: 1.6;">
+                        <li class="mb-3 d-flex"><i class="bi bi-caret-right-fill text-warning me-2 mt-1"></i> This
+                            registration is for participating in the Dwarka Yatra organized by the management.</li>
+                        <li class="mb-3 d-flex"><i class="bi bi-caret-right-fill text-warning me-2 mt-1"></i> Hotel
+                            accommodation and food will be provided as part of the yatra package, as per the selected
+                            plan.</li>
+                        <li class="mb-3 d-flex"><i class="bi bi-caret-right-fill text-warning me-2 mt-1"></i>
+                            Children aged 5 years or below will be provided free hotel accommodation
+                            and food.
+                        </li>
+                        <li class="mb-3 d-flex"><i class="bi bi-caret-right-fill text-warning me-2 mt-1"></i>
+                            Children aged 6 to 10 years will be charged 50% of the hotel and food
+                            charges.
+                        </li>
+                        <li class="mb-3 d-flex"><i class="bi bi-caret-right-fill text-warning me-2 mt-1"></i> All
+                            personal details submitted during registration must be accurate and truthful.</li>
+                        <li class="mb-3 d-flex"><i class="bi bi-caret-right-fill text-warning me-2 mt-1"></i> Any false
+                            or incorrect information may result in cancellation of the registration without refund.</li>
+                        <li class="mb-3 d-flex"><i class="bi bi-caret-right-fill text-warning me-2 mt-1"></i> The
+                            organizers are not responsible for delays, loss of belongings, during the yatra.</li>
+                        <li class="mb-3 d-flex"><i class="bi bi-caret-right-fill text-warning me-2 mt-1"></i> Any fees
+                            paid, if applicable, are non-refundable unless explicitly stated otherwise.</li>
+                        <li class="mb-3 d-flex"><i class="bi bi-caret-right-fill text-warning me-2 mt-1"></i> Personal
+                            information collected will be used only for registration and communication related to the
+                            Dwarka Yatra.</li>
+                    </ul>
+                </div>
+
+                <div class="mt-4 text-center">
+                    <p class="small text-white-50">By clicking "I Agree", you confirm that you have read, understood,
+                        and agreed to all the above terms and conditions.</p>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 justify-content-center pb-4">
+                <button type="button" class="btn btn-primary btn-lg px-5 rounded-pill shadow-lg" id="agreeBtn"
+                    style="background: linear-gradient(90deg, #ffc107, #ff9800); border: none; font-weight: bold; color: black;">
+                    <i class="bi bi-check-circle-fill me-2"></i>I Agree
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
     /* Enhanced passenger section styling */
     .passenger-section {
@@ -304,6 +371,7 @@ auto;">
                 <` + `div class="col-md-4">
                     <` + `label class="form-label">Alternative Phone<` + `/label>
                     <` + `input type="tel" name="passenger_alt_phone[]" class="form-control passenger-alt-phone" placeholder="+91 XXXXX XXXXX">
+                    <` + `div class="invalid-feedback">Alternate phone number cannot be the same as primary phone number.<` + `/div>
                 <` + `/div>
                 <` + `div class="col-md-2">
                     <` + `label class="form-label">Age *<` + `/label>
@@ -399,6 +467,28 @@ auto;">
             input.removeEventListener('input', updateGuardianOptions);
             input.addEventListener('input', updateGuardianOptions);
         });
+
+        // Listen for phone and alternate phone changes for validation
+        document.querySelectorAll('.passenger-phone, .passenger-alt-phone').forEach(input => {
+            input.removeEventListener('input', validatePhones);
+            input.addEventListener('input', validatePhones);
+        });
+    }
+
+    // Validate phone and alternate phone are different
+    function validatePhones(e) {
+        const section = e.target.closest('.passenger-section');
+        const phoneInput = section.querySelector('.passenger-phone');
+        const altPhoneInput = section.querySelector('.passenger-alt-phone');
+
+        const phone = phoneInput.value.trim();
+        const altPhone = altPhoneInput.value.trim();
+
+        if (altPhone && phone === altPhone) {
+            altPhoneInput.classList.add('is-invalid');
+        } else {
+            altPhoneInput.classList.remove('is-invalid');
+        }
     }
 
     // Handle age change to show/hide guardian field
@@ -508,7 +598,7 @@ auto;">
 
         let hasError = false;
 
-        allPassengerSections.forEach((section) => {
+        allPassengerSections.forEach((section, index) => {
             const age = parseInt(section.querySelector('.passenger-age').value);
             const guardianSelect = section.querySelector('.guardian-select');
 
@@ -523,11 +613,30 @@ auto;">
             } else {
                 guardianSelect.classList.remove('is-invalid');
             }
+
+            // Check if alternate phone is same as primary phone
+            const phoneInput = section.querySelector('.passenger-phone');
+            const altPhoneInput = section.querySelector('.passenger-alt-phone');
+            const phone = phoneInput.value.trim();
+            const altPhone = altPhoneInput.value.trim();
+
+            if (altPhone && phone === altPhone) {
+                hasError = true;
+                altPhoneInput.classList.add('is-invalid');
+                // Rely on invalid-feedback div for message
+            } else if (altPhone) {
+                // Remove invalid class if they don't match (and alt phone exists)
+                altPhoneInput.classList.remove('is-invalid');
+            }
         });
 
         if (hasError) {
             e.preventDefault();
-            alert('Please select a guardian for all travelers 10 years old and under.');
+            if (document.querySelector('.passenger-alt-phone.is-invalid')) {
+                alert('Please correct the errors in the form.');
+            } else {
+                alert('Please select a guardian for all travelers 10 years old and under.');
+            }
             return false;
         }
     });
@@ -601,6 +710,23 @@ auto;">
 
     // Automatically add the first passenger
     addPassenger();
+
+    // Show Disclaimer Modal on Load
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize the modal with static backdrop so it can't be closed by clicking outside
+        var disclaimerModal = new bootstrap.Modal(document.getElementById('disclaimerModal'), {
+            backdrop: 'static',
+            keyboard: false
+        });
+
+        // Show the modal
+        disclaimerModal.show();
+
+        // Handle Agree Button Click
+        document.getElementById('agreeBtn').addEventListener('click', function () {
+            disclaimerModal.hide();
+        });
+    });
 
 </script>
 {% endblock %}

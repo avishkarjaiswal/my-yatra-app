@@ -13,7 +13,10 @@ def get_india_time():
 class PassengerInsider(db.Model):
     """Represents a traveler who has OTM (One Time Membership)"""
     __tablename__ = 'passenger_insider'
-    id = db.Column(db.Integer, primary_key=True)
+    
+    
+    # Primary Key: Use ORDER_ID (razorpay_order_id) as primary key
+    razorpay_order_id = db.Column(db.String(100), primary_key=True)
     
     # Personal Details
     name = db.Column(db.String(100), nullable=False)
@@ -39,7 +42,6 @@ class PassengerInsider(db.Model):
     yatra_class = db.Column(db.String(20), nullable=True, default='Standard')
     
     # Payment Details
-    razorpay_order_id = db.Column(db.String(100), unique=True, nullable=False)
     razorpay_payment_id = db.Column(db.String(100), nullable=True)
     amount = db.Column(db.Float, nullable=False)
     payment_status = db.Column(db.String(20), default='Pending')  # Pending, Paid, Failed
@@ -53,7 +55,10 @@ class PassengerInsider(db.Model):
 class PassengerOutsider(db.Model):
     """Represents a traveler who does not have OTM (One Time Membership)"""
     __tablename__ = 'passenger_outsider'
-    id = db.Column(db.Integer, primary_key=True)
+    
+    
+    # Primary Key: Use ORDER_ID (razorpay_order_id) as primary key
+    razorpay_order_id = db.Column(db.String(100), primary_key=True)
     
     # Personal Details
     name = db.Column(db.String(100), nullable=False)
@@ -79,7 +84,6 @@ class PassengerOutsider(db.Model):
     yatra_class = db.Column(db.String(20), nullable=True, default='Standard')
     
     # Payment Details
-    razorpay_order_id = db.Column(db.String(100), unique=True, nullable=False)
     razorpay_payment_id = db.Column(db.String(100), nullable=True)
     amount = db.Column(db.Float, nullable=False)
     payment_status = db.Column(db.String(20), default='Pending')  # Pending, Paid, Failed
@@ -94,16 +98,18 @@ class OTMActive(db.Model):
     """Tracks valid/active OTM IDs that can be used"""
     __tablename__ = 'otm_active'
     id = db.Column(db.String(50), primary_key=True)  # OTM ID itself is the primary key
+    otm_type = db.Column(db.String(20), default='standard')  # 'standard' or 'discount'
     created_at = db.Column(db.DateTime, default=get_india_time)
     
     def __repr__(self):
-        return f'<OTMActive {self.id}>'
+        return f'<OTMActive {self.id} ({self.otm_type})>'
 
 class OTMExpired(db.Model):
     """Tracks used/expired OTM IDs"""
     __tablename__ = 'otm_expired'
     id = db.Column(db.String(50), primary_key=True)  # OTM ID itself is the primary key
     used_by_passenger_id = db.Column(db.Integer, nullable=True)  # Reference to passenger who used it
+    otm_type = db.Column(db.String(20), default='standard')  # Preserve type after expiry
     expired_at = db.Column(db.DateTime, default=get_india_time)
     
     def __repr__(self):

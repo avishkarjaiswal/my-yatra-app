@@ -139,6 +139,11 @@ def register():
                     # Get guardian ID if provided
                     guardian_id = passenger_guardians[idx] if idx < len(passenger_guardians) and passenger_guardians[idx] else None
                     
+                    # Validate phones are different
+                    if alt_phone and phone.strip() == alt_phone.strip():
+                        flash(f'Alternate phone cannot be same as primary phone for {name}', 'error')
+                        return redirect(url_for('register'))
+                    
                     travelers_personal[str(idx)] = {
                         'name': name.strip(),
                         'original_name': name.strip(),  # Store original name
@@ -273,6 +278,9 @@ def package_selection():
                     travel = request.form.get(f'travel_{idx}', 'self')
                     has_otm = request.form.get(f'otm_{idx}') == 'yes'
                     otm_id = request.form.get(f'otm_id_{idx}', '').strip() if has_otm else None
+                    
+                    # Debug: Show what we received from the form
+                    print(f"[DEBUG FORM] Traveler {idx}: has_otm={has_otm}, otm_id='{otm_id}', hotel={hotel}, travel={travel}")
                 
                 # Parse and validate dates
                 try:
@@ -294,39 +302,54 @@ def package_selection():
                 # Get traveler age
                 traveler_age = travelers_personal[idx]['age']
                 
-                # Base costs
-                base_hotel_cost = PRICING['hotel'].get(hotel, PRICING['hotel']['basic']) * num_days
-                base_food_cost = PRICING['food'] * num_days
-                # Travel cost is NOT included in payment (Pay Later model)
-                travel_cost = 0
+                # Check for Youth OTM Special Package (OTM ID contains "YOUTH")
+                is_youth_otm = False
+                if has_otm and otm_id:
+                    # Check if OTM ID contains "YOUTH" (case-insensitive)
+                    is_youth_otm = 'YOUTH' in otm_id.upper()
+                    print(f"[DEBUG] OTM ID: {otm_id}, Uppercase: {otm_id.upper()}, is_youth_otm: {is_youth_otm}")
                 
-                # Apply age-based discounts for hotel and food
-                if traveler_age <= 5:
-                    # Children 5 and under: FREE hotel and food
-                    hotel_cost = 0
-                    food_cost = 0
-                    discount_note = "Child (≤5 years): Free hotel & food"
-                elif 6 <= traveler_age <= 10:
-                    # Children 6-10: 50% discount on hotel and food
-                    hotel_cost = base_hotel_cost * 0.5
-                    food_cost = base_food_cost * 0.5
-                    discount_note = "Child (6-10 years): 50% off hotel & food"
+                if is_youth_otm:
+                    # Youth OTM Special Logic: Fixed Price ₹5000 with Basic Hotel + Train
+                    # Override user selections to enforce package standardization
+                    hotel = 'basic'
+                    travel = 'train'
+                    
+                    final_amount = 5000
+                    discount_note = "Youth OTM Package: ₹5000 Fixed (Basic Hotel). Train charges applicable later."
+                    
                 else:
-                    # Adults: Full price
-                    hotel_cost = base_hotel_cost
-                    food_cost = base_food_cost
-                    discount_note = None
-                
-                subtotal = hotel_cost + food_cost + travel_cost
-                
-                # OTM doesn't apply any discount anymore, just for data collection
-                final_amount = subtotal
+                    # Standard Pricing Logic (for non-youth OTMs and non-OTM users)
+                    base_hotel_cost = PRICING['hotel'].get(hotel, PRICING['hotel']['basic']) * num_days
+                    base_food_cost = PRICING['food'] * num_days
+                    # Travel cost is NOT included in payment (Pay Later model)
+                    travel_cost = 0
+                    
+                    # Apply age-based discounts for hotel and food
+                    if traveler_age <= 5:
+                        # Children 5 and under: FREE hotel and food
+                        hotel_cost = 0
+                        food_cost = 0
+                        discount_note = "Child (≤5 years): Free hotel & food"
+                    elif 6 <= traveler_age <= 10:
+                        # Children 6-10: 50% discount on hotel and food
+                        hotel_cost = base_hotel_cost * 0.5
+                        food_cost = base_food_cost * 0.5
+                        discount_note = "Child (6-10 years): 50% off hotel & food"
+                    else:
+                        # Adults: Full price
+                        hotel_cost = base_hotel_cost
+                        food_cost = base_food_cost
+                        discount_note = None
+                    
+                    subtotal = hotel_cost + food_cost + travel_cost
+                    final_amount = subtotal
+
                 
                 total_amount += final_amount
                 
                 print(f"[DEBUG] Traveler {idx} ({travelers_personal[idx]['name']}, Age: {traveler_age}): "
                       f"{num_days} days, {hotel} hotel, {travel} travel, "
-                      f"Hotel: ₹{hotel_cost}, Food: ₹{food_cost}, Travel: ₹{travel_cost}, "
                       f"Total: ₹{final_amount}" + (f" ({discount_note})" if discount_note else ""))
 
                 
@@ -340,6 +363,7 @@ def package_selection():
                     'travel_medium': travel,
                     'has_otm': has_otm,
                     'otm_id': otm_id,
+                    'is_youth_otm': is_youth_otm,  # Store youth OTM flag
                     'amount': final_amount,
                     'discount_note': discount_note,  # Add discount information
                     # Package for legacy compatibility
@@ -395,10 +419,16 @@ def verify_otm():
         otm_record = OTMActive.query.filter_by(id=otm_id).first()
         
         if otm_record:
+            # Check if OTM ID contains "YOUTH" (case-insensitive)
+            is_youth_otm = 'youth' in otm_id.lower()
+            print(f"[DEBUG VERIFY] OTM ID: {otm_id}, Lowercase: {otm_id.lower()}, is_youth_otm: {is_youth_otm}")
+            
             return jsonify({
                 'valid': True, 
                 'message': f'OTM ID verified successfully! ✓',
-                'otm_id': otm_id
+                'otm_id': otm_id,
+                'otm_type': otm_record.otm_type, # Return type for backward compatibility
+                'is_youth_otm': is_youth_otm  # Youth OTM flag for ₹5000 fixed pricing
             })
         else:
             return jsonify({
@@ -409,6 +439,7 @@ def verify_otm():
     except Exception as e:
         print(f"[ERROR] ❌ OTM verification failed: {str(e)}")
         return jsonify({'valid': False, 'message': 'Verification failed. Please try again.'})
+
 
 @app.route('/registration-summary')
 def registration_summary():
@@ -454,12 +485,14 @@ def confirm_and_pay():
             if traveler.get('journey_end_date'):
                 journey_end = datetime.strptime(traveler['journey_end_date'], '%Y-%m-%d').date()
             
-            # Generate a unique order ID
-            pending_order_id = f"PENDING_{uuid.uuid4().hex[:12].upper()}"
-            pending_order_ids.append(pending_order_id)
-            
             # Determine which table to use based on OTM status
             has_otm = traveler.get('has_otm', False)
+            
+            # Generate a unique order ID with prefix to prevent clashes between tables
+            # INS_ = Insider (has OTM), OUT_ = Outsider (no OTM)
+            prefix = "INS_PENDING" if has_otm else "OUT_PENDING"
+            pending_order_id = f"{prefix}_{uuid.uuid4().hex[:12].upper()}"
+            pending_order_ids.append(pending_order_id)
             
             if has_otm:
                 # Create in PassengerInsider table with Pending status
@@ -592,8 +625,8 @@ def create_payment():
         # Data will be saved only after successful payment verification
         passenger_order_ids = []
         for traveler in travelers_data:
-            # Generate unique order ID for this passenger  
-            passenger_order_id = f"ORDER_{uuid.uuid4().hex[:12].upper()}"
+            # Generate unique order ID for this passenger
+            passenger_order_id = f"{uuid.uuid4().hex[:12].upper()}"
             passenger_order_ids.append(passenger_order_id)
             print(f"[DEBUG] Generated order ID for {traveler['name']}: {passenger_order_id}")
         
@@ -761,7 +794,7 @@ def verify_payment():
                 db.session.add(passenger)
                 all_passengers.append(passenger)
             
-            # Handle OTM ID transfer from active to expired (for all passengers)
+                # Handle OTM ID transfer from active to expired (for all passengers)
             for passenger in all_passengers:
                 if isinstance(passenger, PassengerInsider) and passenger.has_otm and passenger.otm_id:
                     # Check if OTM ID exists in active table
@@ -773,13 +806,14 @@ def verify_payment():
                         # Create expired record
                         otm_expired = OTMExpired(
                             id=passenger.otm_id,
-                            used_by_passenger_id=passenger.id
+                            used_by_passenger_id=passenger.id,
+                            otm_type=otm_active.otm_type # Preserve type
                         )
                         # Remove from active table
                         db.session.delete(otm_active)
                         # Add to expired table
                         db.session.add(otm_expired)
-                        print(f"[SUCCESS] ✅ Moved OTM ID {passenger.otm_id} from active to expired")
+                        print(f"[SUCCESS] ✅ Moved OTM ID {passenger.otm_id} from active to expired (Type: {otm_active.otm_type})")
         
         try:
             db.session.commit()
@@ -997,28 +1031,49 @@ def admin_dashboard():
     records = []
     
     if table_type == 'passenger_insider':
-        headers = ['ID', 'Name', 'Email', 'Phone', 'Age', 'Gender', 'City', 'OTM ID', 'Package', 'Amount', 'Status', 'Date']
+        headers = ['Order ID', 'Name', 'Email', 'Phone', 'Alt Phone', 'Location', 'Age/Gen', 'OTM ID', 'Package Details', 'Amount', 'Status', 'Date']
         items = PassengerInsider.query.order_by(PassengerInsider.created_at.desc()).all()
         for item in items:
+            loc = f"{item.city or '-'}, {item.district or '-'}, {item.state or '-'}"
+            pkg = f"{item.hotel_category or '-'} | {item.travel_medium or '-'}"
             records.append({
-                'id': item.id,
+                'id': item.razorpay_order_id,
                 'cols': [
-                    item.id, item.name, item.email, item.phone, item.age, item.gender, 
-                    item.city or '-', item.otm_id, item.yatra_class, f"₹{item.amount}", 
-                    item.payment_status, item.created_at.strftime('%Y-%m-%d %H:%M')
+                    item.razorpay_order_id,
+                    item.name, 
+                    item.email, 
+                    item.phone,
+                    item.alternative_phone or '-',
+                    loc,
+                    f"{item.age}/{item.gender}",
+                    item.otm_id, 
+                    pkg, 
+                    f"₹{item.amount}", 
+                    item.payment_status, 
+                    item.created_at.strftime('%Y-%m-%d %H:%M')
                 ]
             })
             
     elif table_type == 'passenger_outsider':
-        headers = ['ID', 'Name', 'Email', 'Phone', 'Age', 'Gender', 'City', 'Package', 'Amount', 'Status', 'Date']
+        headers = ['Order ID', 'Name', 'Email', 'Phone', 'Alt Phone', 'Location', 'Age/Gen', 'Package Details', 'Amount', 'Status', 'Date']
         items = PassengerOutsider.query.order_by(PassengerOutsider.created_at.desc()).all()
         for item in items:
+            loc = f"{item.city or '-'}, {item.district or '-'}, {item.state or '-'}"
+            pkg = f"{item.hotel_category or '-'} | {item.travel_medium or '-'}"
             records.append({
-                'id': item.id,
+                'id': item.razorpay_order_id,
                 'cols': [
-                    item.id, item.name, item.email, item.phone, item.age, item.gender, 
-                    item.city or '-', item.yatra_class, f"₹{item.amount}", 
-                    item.payment_status, item.created_at.strftime('%Y-%m-%d %H:%M')
+                    item.razorpay_order_id,
+                    item.name, 
+                    item.email, 
+                    item.phone, 
+                    item.alternative_phone or '-',
+                    loc,
+                    f"{item.age}/{item.gender}",
+                    pkg, 
+                    f"₹{item.amount}", 
+                    item.payment_status, 
+                    item.created_at.strftime('%Y-%m-%d %H:%M')
                 ]
             })
             
@@ -1065,7 +1120,7 @@ def admin_dashboard():
         for item in all_transactions:
             p = item['obj']
             records.append({
-                'id': p.id,
+                'id': p.razorpay_order_id,
                 'cols': [
                     p.name,
                     p.razorpay_order_id or 'N/A',
@@ -1077,7 +1132,7 @@ def admin_dashboard():
             })
             
     else: # all_passengers
-        headers = ['ID', 'Type', 'Name', 'Email', 'Phone', 'Age', 'Gender', 'Package', 'Amount', 'Status', 'Date']
+        headers = ['Order ID', 'Type', 'Name', 'Email', 'Phone', 'Alt Phone', 'Location', 'Age/Gen', 'Pkg/Amt', 'Status', 'Date']
         insiders = PassengerInsider.query.all()
         outsiders = PassengerOutsider.query.all()
         
@@ -1086,7 +1141,7 @@ def admin_dashboard():
         for p in insiders:
             all_items.append({
                 'obj': p,
-                'type': 'Insider (OTM)',
+                'type': 'Insider',
                 'sort_date': p.created_at
             })
         for p in outsiders:
@@ -1100,11 +1155,21 @@ def admin_dashboard():
         
         for item in all_items:
             p = item['obj']
+            loc = f"{p.city or '-'}, {p.district or '-'}, {p.state or '-'}"
+            pkg_amt = f"{p.hotel_category or '-'} | ₹{p.amount}"
             records.append({
-                'id': p.id,
+                'id': p.razorpay_order_id,
                 'cols': [
-                    p.id, item['type'], p.name, p.email, p.phone, p.age, p.gender,
-                    p.yatra_class, f"₹{p.amount}", p.payment_status, 
+                    p.razorpay_order_id,
+                    item['type'], 
+                    p.name, 
+                    p.email, 
+                    p.phone,
+                    p.alternative_phone or '-',
+                    loc,
+                    f"{p.age}/{p.gender}",
+                    pkg_amt, 
+                    p.payment_status, 
                     p.created_at.strftime('%Y-%m-%d %H:%M')
                 ]
             })
@@ -1323,30 +1388,30 @@ def admin_update_record():
         # Determine which table to update
         if table_name == 'passenger_insider' or table_name == 'all_passengers':
             try:
-                record = PassengerInsider.query.get(int(record_id))
+                record = PassengerInsider.query.filter_by(razorpay_order_id=record_id).first()
             except:
                 pass
             
             if not record and table_name == 'all_passengers':
                 try:
-                    record = PassengerOutsider.query.get(int(record_id))
+                    record = PassengerOutsider.query.filter_by(razorpay_order_id=record_id).first()
                 except:
                     pass
                     
         elif table_name == 'passenger_outsider':
             try:
-                record = PassengerOutsider.query.get(int(record_id))
+                record = PassengerOutsider.query.filter_by(razorpay_order_id=record_id).first()
             except:
                 pass
                 
         elif table_name == 'transactions':
             try:
-                record = PassengerInsider.query.get(int(record_id))
+                record = PassengerInsider.query.filter_by(razorpay_order_id=record_id).first()
             except:
                 pass
             if not record:
                 try:
-                    record = PassengerOutsider.query.get(int(record_id))
+                    record = PassengerOutsider.query.filter_by(razorpay_order_id=record_id).first()
                 except:
                     pass
         
@@ -1384,32 +1449,32 @@ def admin_delete_record():
         if table_name == 'passenger_insider' or table_name == 'all_passengers':
             # Try to find in insider table
             try:
-                record = PassengerInsider.query.get(int(record_id))
+                record = PassengerInsider.query.filter_by(razorpay_order_id=record_id).first()
             except:
                 pass
             
             # If not found and it's all_passengers, try outsider
             if not record and table_name == 'all_passengers':
                 try:
-                    record = PassengerOutsider.query.get(int(record_id))
+                    record = PassengerOutsider.query.filter_by(razorpay_order_id=record_id).first()
                 except:
                     pass
                     
         elif table_name == 'passenger_outsider':
             try:
-                record = PassengerOutsider.query.get(int(record_id))
+                record = PassengerOutsider.query.filter_by(razorpay_order_id=record_id).first()
             except:
                 pass
                 
         elif table_name == 'transactions':
             # For transactions, try both tables
             try:
-                record = PassengerInsider.query.get(int(record_id))
+                record = PassengerInsider.query.filter_by(razorpay_order_id=record_id).first()
             except:
                 pass
             if not record:
                 try:
-                    record = PassengerOutsider.query.get(int(record_id))
+                    record = PassengerOutsider.query.filter_by(razorpay_order_id=record_id).first()
                 except:
                     pass
                     
@@ -1582,7 +1647,7 @@ def generate_otm_ids():
         flash(f'Error generating OTM IDs: {str(e)}', 'error')
         return redirect(url_for('admin_dashboard', table='otm_active'))
 
-@app.route('/admin/generate-receipt/<int:record_id>')
+@app.route('/admin/generate-receipt/<record_id>')
 @login_required
 def admin_generate_receipt(record_id):
     """Generate receipt for a specific passenger (admin only)"""
@@ -1593,14 +1658,14 @@ def admin_generate_receipt(record_id):
         passenger = None
         
         if table == 'passenger_insider':
-            passenger = PassengerInsider.query.get(record_id)
+            passenger = PassengerInsider.query.filter_by(razorpay_order_id=record_id).first()
         elif table == 'passenger_outsider':
-            passenger = PassengerOutsider.query.get(record_id)
-        elif table == 'all_passengers':
+            passenger = PassengerOutsider.query.filter_by(razorpay_order_id=record_id).first()
+        elif table == 'all_passengers' or table == 'transactions':
             # Try both tables
-            passenger = PassengerInsider.query.get(record_id)
+            passenger = PassengerInsider.query.filter_by(razorpay_order_id=record_id).first()
             if not passenger:
-                passenger = PassengerOutsider.query.get(record_id)
+                passenger = PassengerOutsider.query.filter_by(razorpay_order_id=record_id).first()
         
         if not passenger:
             flash('Passenger record not found', 'error')

@@ -293,6 +293,27 @@ def generate_receipt_pdf(passengers, total_amount):
             ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.white, colors.HexColor('#F5F5F5')]),
         ]))
         elements.append(payment_info_table)
+        elements.append(Spacer(1, 0.4*cm))
+
+        # Important Note about Travel Cost
+        note_style = ParagraphStyle(
+            'NoteStyle',
+            parent=normal_style,
+            fontSize=9,
+            textColor=colors.HexColor('#D32F2F'), # Red color for attention
+            alignment=TA_LEFT,
+            borderColor=colors.HexColor('#ffcc80'),
+            borderWidth=1,
+            borderPadding=10,
+            backColor=colors.HexColor('#fff3e0')
+        )
+        
+        note = Paragraph(
+            "<b>IMPORTANT NOTE:</b> We have NOT charged for your traveling cost. " 
+            "Traveling cost depends entirely on whether you choose to travel by train or flight.", 
+            note_style
+        )
+        elements.append(note)
         
         # Add page break between travelers (except for the last one)
         if idx < len(passengers):

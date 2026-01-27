@@ -58,7 +58,7 @@
                         <h5 class="text-center mb-3 text-primary">Payment Receipt</h5>
                         <div class="row mb-2">
                             <div class="col-6 fw-bold">Total Amount Paid:</div>
-                            <div class="col-6 text-success fw-bold">₹ {{ total_amount }}</div>
+                            <div class="col-6 text-success fw-bold">Rs. {{ total_amount }}</div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-6 fw-bold">Payment Status:</div>
@@ -71,6 +71,11 @@
                         <div class="row mb-2">
                             <div class="col-6 fw-bold">Date:</div>
                             <div class="col-6">{{ passengers[0].created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                        <div class="alert alert-warning mt-3 mb-0 text-start" role="alert">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            <strong>Note:</strong> We have NOT charged for your traveling cost. Traveling cost depends
+                            entirely on whether you choose to travel by train or flight.
                         </div>
                     </div>
 
