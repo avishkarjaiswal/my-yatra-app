@@ -21,6 +21,14 @@ app = Flask(__name__)
 # Flask Configuration - Load from environment variables
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback-secret-key-change-in-production')
 
+# Server-side Session Configuration
+from flask_session import Session
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_FILE_DIR'] = '/tmp/flask_session' if os.path.exists('/tmp') else './flask_session'
+Session(app)
+
 # Database Configuration
 database_url = os.getenv('DATABASE_URI', 'sqlite:///yatra.db')
 if database_url.startswith("postgres://"):
