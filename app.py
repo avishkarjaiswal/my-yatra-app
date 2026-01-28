@@ -61,7 +61,7 @@ with app.app_context():
         db.create_all()
         print("✅ Database tables created successfully!")
     except Exception as e:
-        print(f"⚠️ WARNING: Database table creation failed (likely due to read-only filesystem on serverless): {e}")
+        print(f"⚠️ WARNING: Database table creation failed: {e}")
 
 # Pricing for package components (in INR)
 PRICING = {
