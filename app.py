@@ -57,8 +57,11 @@ db.init_app(app)
 
 # Create database tables if they don't exist
 with app.app_context():
-    db.create_all()
-    print("✅ Database tables created successfully!")
+    try:
+        db.create_all()
+        print("✅ Database tables created successfully!")
+    except Exception as e:
+        print(f"⚠️ WARNING: Database table creation failed (likely due to read-only filesystem on serverless): {e}")
 
 # Pricing for package components (in INR)
 PRICING = {
@@ -87,9 +90,12 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-@app.before_request
-def create_tables():
-    db.create_all()
+# @app.before_request
+# def create_tables():
+#     try:
+#         db.create_all()
+#     except:
+#         pass
 
 @app.route('/')
 def index():

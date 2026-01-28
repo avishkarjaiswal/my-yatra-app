@@ -2,7 +2,19 @@
 
 ## 🚀 Quick Deployment Options
 
-### Option 1: Render.com (Recommended - Free Tier Available)
+### Option 0: Vercel (Serverless - Good for Static/Demo)
+**WARNING:** Vercel is "serverless" and has a **Read-Only Filesystem**.
+- You **CANNOT** use the local SQLite database (`yatra.db`) for more than a demo (data will be lost or it will error).
+- You **MUST** use an external database like **Neon (Postgres)** or **Supabase** for a working app.
+- We have added a `vercel.json` file for you.
+
+1. **Push code** to GitHub.
+2. **Import project** in Vercel.
+3. **Add Environment Variables:**
+   - `DATABASE_URI`: Connection string for your external Postgres DB (e.g., `postgresql://...`)
+   - Plus all other variables (`SECRET_KEY`, `RAZORPAY...`)
+
+### Option 1: Render.com (Recommended - Persistent Data)
 
 1. **Create account** at [render.com](https://render.com)
 
