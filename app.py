@@ -1050,7 +1050,7 @@ def admin_dashboard():
                     pkg, 
                     f"₹{item.amount}", 
                     item.payment_status, 
-                    item.created_at.strftime('%Y-%m-%d %H:%M')
+                    item.created_at.strftime('%Y-%m-%d %H:%M') if item.created_at else '-'
                 ]
             })
             
@@ -1073,7 +1073,7 @@ def admin_dashboard():
                     pkg, 
                     f"₹{item.amount}", 
                     item.payment_status, 
-                    item.created_at.strftime('%Y-%m-%d %H:%M')
+                    item.created_at.strftime('%Y-%m-%d %H:%M') if item.created_at else '-'
                 ]
             })
             
@@ -1083,7 +1083,7 @@ def admin_dashboard():
         for item in items:
             records.append({
                 'id': item.id,
-                'cols': [item.id, item.created_at.strftime('%Y-%m-%d %H:%M')]
+                'cols': [item.id, item.created_at.strftime('%Y-%m-%d %H:%M') if item.created_at else '-']
             })
             
     elif table_type == 'otm_expired':
@@ -1092,7 +1092,7 @@ def admin_dashboard():
         for item in items:
             records.append({
                 'id': item.id,
-                'cols': [item.id, item.used_by_passenger_id, item.expired_at.strftime('%Y-%m-%d %H:%M')]
+                'cols': [item.id, item.used_by_passenger_id, item.expired_at.strftime('%Y-%m-%d %H:%M') if item.expired_at else '-']
             })
     
     elif table_type == 'transactions':
@@ -1114,8 +1114,8 @@ def admin_dashboard():
                 'sort_date': p.created_at
             })
         
-        # Sort by date descending
-        all_transactions.sort(key=lambda x: x['sort_date'], reverse=True)
+        # Sort by date descending (handle None dates safely)
+        all_transactions.sort(key=lambda x: x['sort_date'] or datetime.min, reverse=True)
         
         for item in all_transactions:
             p = item['obj']
@@ -1127,7 +1127,7 @@ def admin_dashboard():
                     p.razorpay_payment_id or 'N/A',
                     f"₹{p.amount}",
                     p.payment_status,
-                    p.created_at.strftime('%Y-%m-%d %H:%M')
+                    p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '-'
                 ]
             })
             
@@ -1151,7 +1151,7 @@ def admin_dashboard():
                 'sort_date': p.created_at
             })
             
-        all_items.sort(key=lambda x: x['sort_date'], reverse=True)
+        all_items.sort(key=lambda x: x['sort_date'] or datetime.min, reverse=True)
         
         for item in all_items:
             p = item['obj']
@@ -1170,7 +1170,7 @@ def admin_dashboard():
                     f"{p.age}/{p.gender}",
                     pkg_amt, 
                     p.payment_status, 
-                    p.created_at.strftime('%Y-%m-%d %H:%M')
+                    p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '-'
                 ]
             })
 
