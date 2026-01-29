@@ -1045,11 +1045,9 @@ def admin_dashboard():
     records = []
     
     if table_type == 'passenger_insider':
-        headers = ['Order ID', 'Name', 'Email', 'Phone', 'Alt Phone', 'Location', 'Age/Gen', 'OTM ID', 'Package Details', 'Amount', 'Status', 'Date']
+        headers = ['razorpay_order_id', 'name', 'email', 'phone', 'alternative_phone', 'city', 'district', 'state', 'age', 'gender', 'otm_id', 'hotel_category', 'travel_medium', 'amount', 'payment_status', 'created_at']
         items = PassengerInsider.query.order_by(PassengerInsider.created_at.desc()).all()
         for item in items:
-            loc = f"{item.city or '-'}, {item.district or '-'}, {item.state or '-'}"
-            pkg = f"{item.hotel_category or '-'} | {item.travel_medium or '-'}"
             records.append({
                 'id': item.razorpay_order_id,
                 'cols': [
@@ -1058,22 +1056,24 @@ def admin_dashboard():
                     item.email, 
                     item.phone,
                     item.alternative_phone or '-',
-                    loc,
-                    f"{item.age}/{item.gender}",
+                    item.city or '-',
+                    item.district or '-',
+                    item.state or '-',
+                    item.age,
+                    item.gender,
                     item.otm_id, 
-                    pkg, 
-                    f"₹{item.amount}", 
+                    item.hotel_category or '-',
+                    item.travel_medium or '-',
+                    item.amount, 
                     item.payment_status, 
                     item.created_at.strftime('%Y-%m-%d %H:%M') if item.created_at else '-'
                 ]
             })
             
     elif table_type == 'passenger_outsider':
-        headers = ['Order ID', 'Name', 'Email', 'Phone', 'Alt Phone', 'Location', 'Age/Gen', 'Package Details', 'Amount', 'Status', 'Date']
+        headers = ['razorpay_order_id', 'name', 'email', 'phone', 'alternative_phone', 'city', 'district', 'state', 'age', 'gender', 'otm_id', 'hotel_category', 'travel_medium', 'amount', 'payment_status', 'created_at']
         items = PassengerOutsider.query.order_by(PassengerOutsider.created_at.desc()).all()
         for item in items:
-            loc = f"{item.city or '-'}, {item.district or '-'}, {item.state or '-'}"
-            pkg = f"{item.hotel_category or '-'} | {item.travel_medium or '-'}"
             records.append({
                 'id': item.razorpay_order_id,
                 'cols': [
@@ -1082,35 +1082,40 @@ def admin_dashboard():
                     item.email, 
                     item.phone, 
                     item.alternative_phone or '-',
-                    loc,
-                    f"{item.age}/{item.gender}",
-                    pkg, 
-                    f"₹{item.amount}", 
+                    item.city or '-',
+                    item.district or '-',
+                    item.state or '-',
+                    item.age,
+                    item.gender,
+                    item.otm_id or 'N/A', # Outsider might have it null, but show column
+                    item.hotel_category or '-',
+                    item.travel_medium or '-', 
+                    item.amount, 
                     item.payment_status, 
                     item.created_at.strftime('%Y-%m-%d %H:%M') if item.created_at else '-'
                 ]
             })
             
     elif table_type == 'otm_active':
-        headers = ['OTM ID', 'Created At']
+        headers = ['id', 'otm_type', 'created_at']
         items = OTMActive.query.order_by(OTMActive.created_at.desc()).all()
         for item in items:
             records.append({
                 'id': item.id,
-                'cols': [item.id, item.created_at.strftime('%Y-%m-%d %H:%M') if item.created_at else '-']
+                'cols': [item.id, item.otm_type, item.created_at.strftime('%Y-%m-%d %H:%M') if item.created_at else '-']
             })
             
     elif table_type == 'otm_expired':
-        headers = ['OTM ID', 'Used By Passenger ID', 'Expired At']
+        headers = ['id', 'used_by_passenger_id', 'otm_type', 'expired_at']
         items = OTMExpired.query.order_by(OTMExpired.expired_at.desc()).all()
         for item in items:
             records.append({
                 'id': item.id,
-                'cols': [item.id, item.used_by_passenger_id, item.expired_at.strftime('%Y-%m-%d %H:%M') if item.expired_at else '-']
+                'cols': [item.id, item.used_by_passenger_id, item.otm_type, item.expired_at.strftime('%Y-%m-%d %H:%M') if item.expired_at else '-']
             })
     
     elif table_type == 'transactions':
-        headers = ['Passenger Name', 'Order ID', 'Payment ID', 'Amount', 'Payment Status', 'Created Date']
+        headers = ['name', 'razorpay_order_id', 'razorpay_payment_id', 'amount', 'payment_status', 'created_at']
         # Get all passengers from both tables
         insiders = PassengerInsider.query.order_by(PassengerInsider.created_at.desc()).all()
         outsiders = PassengerOutsider.query.order_by(PassengerOutsider.created_at.desc()).all()
@@ -1139,14 +1144,14 @@ def admin_dashboard():
                     p.name,
                     p.razorpay_order_id or 'N/A',
                     p.razorpay_payment_id or 'N/A',
-                    f"₹{p.amount}",
+                    p.amount,
                     p.payment_status,
                     p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '-'
                 ]
             })
             
     else: # all_passengers
-        headers = ['Order ID', 'Type', 'Name', 'Email', 'Phone', 'Alt Phone', 'Location', 'Age/Gen', 'Pkg/Amt', 'Status', 'Date']
+        headers = ['razorpay_order_id', 'name', 'email', 'phone', 'alternative_phone', 'city', 'district', 'state', 'age', 'gender', 'otm_id', 'hotel_category', 'travel_medium', 'amount', 'payment_status', 'created_at']
         insiders = PassengerInsider.query.all()
         outsiders = PassengerOutsider.query.all()
         
@@ -1169,20 +1174,23 @@ def admin_dashboard():
         
         for item in all_items:
             p = item['obj']
-            loc = f"{p.city or '-'}, {p.district or '-'}, {p.state or '-'}"
-            pkg_amt = f"{p.hotel_category or '-'} | ₹{p.amount}"
             records.append({
                 'id': p.razorpay_order_id,
                 'cols': [
                     p.razorpay_order_id,
-                    item['type'], 
                     p.name, 
                     p.email, 
-                    p.phone,
+                    p.phone, 
                     p.alternative_phone or '-',
-                    loc,
-                    f"{p.age}/{p.gender}",
-                    pkg_amt, 
+                    p.city or '-',
+                    p.district or '-',
+                    p.state or '-',
+                    p.age,
+                    p.gender,
+                    p.otm_id or 'N/A', # even outsiders have this field now, but often None
+                    p.hotel_category or '-',
+                    p.travel_medium or '-', 
+                    p.amount, 
                     p.payment_status, 
                     p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '-'
                 ]
@@ -1428,6 +1436,20 @@ def admin_update_record():
                     record = PassengerOutsider.query.filter_by(razorpay_order_id=record_id).first()
                 except:
                     pass
+        elif table_name == 'otm_active':
+            try:
+                record = OTMActive.query.filter_by(id=record_id).first()
+            except:
+                pass
+        elif table_name == 'otm_expired':
+            try:
+                record = OTMExpired.query.filter_by(id=record_id).first()
+            except:
+                pass
+        
+        if not record:
+            flash('Record not found', 'error')
+            return redirect(url_for('admin_dashboard', table=table_name))
         
         if not record:
             flash('Record not found', 'error')
@@ -1435,8 +1457,20 @@ def admin_update_record():
         
         # Update fields from form
         for key, value in request.form.items():
-            if key not in ['record_id', 'table_name'] and hasattr(record, key.lower().replace(' ', '_')):
-                setattr(record, key.lower().replace(' ', '_'), value)
+            if key in ['record_id', 'table_name']:
+                continue
+
+            if hasattr(record, key):
+                # Handle special types if necessary
+                if key == 'created_at':
+                    # Skip date updates from string to avoid parsing errors
+                    continue
+                
+                # Check for empty numeric strings
+                if key in ['age', 'amount', 'num_days'] and value == '':
+                    continue 
+
+                setattr(record, key, value)
         
         db.session.commit()
         flash('Record updated successfully!', 'success')

@@ -979,6 +979,31 @@
                 return;
             }
 
+            // check duplicate OTM ID
+            let isDuplicate = false;
+            document.querySelectorAll('input[name^="otm_id_"]').forEach(input => {
+                // Get the index from the input's ID (otm_code_X) or name
+                // safer to look up the radio button associated with this input
+                // input name is otm_id_X, so radio name is otm_X
+                const currentInputName = input.getAttribute('name'); // otm_id_0
+                const otherIdx = currentInputName.replace('otm_id_', '');
+
+                // Check if this traveler has selected "Yes" for OTM
+                const yesRadio = document.querySelector(`input[name="otm_${otherIdx}"][value="yes"]`);
+                const isOtmEnabled = yesRadio && yesRadio.checked;
+
+                if (isOtmEnabled && input.id !== `otm_code_${idx}` && input.value.trim() === otmId) {
+                    isDuplicate = true;
+                }
+            });
+
+            if (isDuplicate) {
+                otmStatus.style.display = 'block';
+                otmStatus.className = 'alert alert-danger alert-sm mt-2';
+                otmStatus.innerHTML = '<i class="bi bi-exclamation-triangle"></i> This OTM ID is already used by another traveler.';
+                return;
+            }
+
             // Disable button and show loading
             this.disabled = true;
             this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Verifying...';
