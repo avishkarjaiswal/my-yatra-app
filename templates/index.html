@@ -8,10 +8,6 @@
             <div class="carousel-item active">
                 <img src="{{ url_for('static', filename='images/dwarka1.png') }}" class="d-block w-100 carousel-img"
                     alt="Dwarka Temple">
-                <div class="carousel-caption">
-                    <h1 class="carousel-title">Welcome to Dwarka Yatra</h1>
-                    <p class="carousel-text">Experience the Divine Journey</p>
-                </div>
             </div>
             <div class="carousel-item">
                 <img src="{{ url_for('static', filename='images/dwarka2.png') }}" class="d-block w-100 carousel-img"
@@ -22,15 +18,8 @@
                     alt="Dwarka Coastline">
             </div>
             <div class="carousel-item">
-                <img src="{{ url_for('static', filename='images/dwarka4.png') }}" class="d-block w-100 carousel-img"
-                    alt="Temple Interior">
-            </div>
-            <div class="carousel-item">
                 <img src="{{ url_for('static', filename='images/dwarka5.png') }}" class="d-block w-100 carousel-img"
                     alt="Happy Pilgrims">
-                <div class="carousel-caption">
-                    <a href="{{ url_for('register') }}" class="btn btn-warning btn-lg mt-3">Register Now</a>
-                </div>
             </div>
         </div>
         <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
@@ -44,36 +33,263 @@
     </div>
 </section>
 
+<!-- Eye-Catching Register Now CTA Section -->
+<section class="py-5 register-cta-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <div class="cta-content">
+                    <h2 class="cta-title mb-3">Join us for the Divine Dwarka Yatra!</h2>
+                    <p class="cta-subtitle mb-4">Limited Seats Available - Secure Your Spot for the Sacred Dwarka Yatra!
+                    </p>
+                    <a href="{{ url_for('register') }}" class="btn-register-now">
+                        <span class="btn-text">
+                            Register Now
+                            <i class="bi bi-arrow-right-circle-fill ms-2"></i>
+                        </span>
+                        <span class="btn-sparkle">✨</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <style>
-    /* Responsive Carousel Styling - Maintains 1920:650 aspect ratio */
+    /* Register CTA Section Styling */
+    .register-cta-section {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 152, 0, 0.15) 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .register-cta-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 193, 7, 0.1) 0%, transparent 70%);
+        animation: rotateGlow 10s linear infinite;
+    }
+
+    @keyframes rotateGlow {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .cta-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .cta-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #ffc107 0%, #ff9800 50%, #ffc107 100%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: shimmer 3s linear infinite;
+        text-shadow: 0 0 30px rgba(255, 193, 7, 0.5);
+    }
+
+    @keyframes shimmer {
+        0% {
+            background-position: 0% center;
+        }
+
+        100% {
+            background-position: 200% center;
+        }
+    }
+
+    .cta-subtitle {
+        font-size: 1.2rem;
+        color: #fff;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    /* The Main Register Button */
+    .btn-register-now {
+        position: relative;
+        display: inline-block;
+        padding: 20px 50px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-decoration: none;
+        color: #000;
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 50%, #ffc107 100%);
+        background-size: 200% auto;
+        border-radius: 50px;
+        box-shadow: 0 10px 30px rgba(255, 193, 7, 0.4),
+            0 0 20px rgba(255, 193, 7, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        overflow: hidden;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+        0%,
+        100% {
+            transform: scale(1);
+            box-shadow: 0 10px 30px rgba(255, 193, 7, 0.4),
+                0 0 20px rgba(255, 193, 7, 0.3);
+        }
+
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(255, 193, 7, 0.6),
+                0 0 30px rgba(255, 193, 7, 0.5);
+        }
+    }
+
+    .btn-register-now::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        transition: left 0.7s;
+    }
+
+    .btn-register-now:hover::before {
+        left: 100%;
+    }
+
+    .btn-register-now:hover {
+        transform: translateY(-5px) scale(1.1);
+        background-position: 100% center;
+        box-shadow: 0 20px 50px rgba(255, 193, 7, 0.6),
+            0 0 40px rgba(255, 193, 7, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        animation: none;
+    }
+
+    .btn-register-now:active {
+        transform: translateY(-2px) scale(1.08);
+    }
+
+    .btn-text {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-sparkle {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        font-size: 1.5rem;
+        animation: sparkle 1.5s ease-in-out infinite;
+    }
+
+    @keyframes sparkle {
+
+        0%,
+        100% {
+            opacity: 1;
+            transform: rotate(0deg) scale(1);
+        }
+
+        50% {
+            opacity: 0.6;
+            transform: rotate(180deg) scale(1.2);
+        }
+    }
+
+    .cta-urgency {
+        font-size: 1rem;
+        color: #ffc107;
+        font-weight: 600;
+        animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.7;
+        }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .cta-title {
+            font-size: 1.8rem;
+        }
+
+        .cta-subtitle {
+            font-size: 1rem;
+        }
+
+        .btn-register-now {
+            padding: 16px 40px;
+            font-size: 1.2rem;
+        }
+
+        .btn-sparkle {
+            font-size: 1.2rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .cta-title {
+            font-size: 1.5rem;
+        }
+
+        .cta-subtitle {
+            font-size: 0.9rem;
+        }
+
+        .btn-register-now {
+            padding: 14px 30px;
+            font-size: 1.1rem;
+        }
+    }
+</style>
+
+<style>
+    /* Fully Responsive Carousel Styling - No Fixed Heights */
     .hero-carousel-responsive {
         position: relative;
         width: 100%;
-        /* Using aspect-ratio to maintain 1920:650 (2.95:1) ratio */
-        aspect-ratio: 2.95 / 1;
-    }
-
-    .hero-carousel-responsive .carousel-item {
-        height: 100%;
+        /* Remove all fixed heights and aspect ratios to allow natural image scaling */
     }
 
     .hero-carousel-responsive .carousel-img {
         width: 100%;
-        height: 100%;
-        object-fit: cover;
-        filter: brightness(0.7);
+        height: auto;
+        /* Use contain to show full image without cropping */
+        object-fit: contain;
+        display: block;
+        /* Ensure consistent aspect ratio */
     }
 
-    /* Responsive adjustments for different screen sizes */
+    /* Responsive text and caption adjustments for different screen sizes */
     @media (max-width: 576px) {
 
-        /* Mobile phones - reduce height for better visibility */
-        .hero-carousel-responsive {
-            aspect-ratio: 1.5 / 1;
-            min-height: 300px;
-            max-height: 400px;
-        }
-
+        /* Mobile phones */
         .carousel-title {
             font-size: 1.5rem !important;
             font-weight: bold;
@@ -84,26 +300,20 @@
         }
 
         .carousel-caption {
-            bottom: 2% !important;
+            bottom: 5% !important;
             padding-bottom: 10px !important;
         }
 
         .carousel-caption .btn {
             font-size: 0.875rem;
             padding: 8px 16px !important;
-            margin-top: 0 !important;
+            margin-top: 0.5rem !important;
         }
     }
 
     @media (min-width: 577px) and (max-width: 768px) {
 
-        /* Tablets - balanced ratio */
-        .hero-carousel-responsive {
-            aspect-ratio: 2 / 1;
-            min-height: 350px;
-            max-height: 450px;
-        }
-
+        /* Tablets */
         .carousel-title {
             font-size: 2rem !important;
             font-weight: bold;
@@ -114,78 +324,66 @@
         }
 
         .carousel-caption {
-            bottom: 2% !important;
-            padding-bottom: 10px !important;
+            bottom: 5% !important;
+            padding-bottom: 15px !important;
+        }
+
+        .carousel-caption .btn {
+            padding: 10px 20px !important;
         }
     }
 
     @media (min-width: 769px) and (max-width: 992px) {
 
         /* Small desktops/large tablets */
-        .hero-carousel-responsive {
-            aspect-ratio: 2.5 / 1;
-            min-height: 400px;
-            max-height: 500px;
-        }
-
         .carousel-title {
             font-size: 2.5rem !important;
             font-weight: bold;
         }
 
         .carousel-caption {
-            bottom: 2% !important;
-            padding-bottom: 10px !important;
+            bottom: 5% !important;
+            padding-bottom: 20px !important;
         }
     }
 
     @media (min-width: 993px) and (max-width: 1400px) {
 
         /* Medium desktops */
-        .hero-carousel-responsive {
-            aspect-ratio: 2.8 / 1;
-            max-height: 600px;
-        }
-
         .carousel-title {
             font-size: 3rem !important;
             font-weight: bold;
         }
 
         .carousel-caption {
-            bottom: 2% !important;
-            padding-bottom: 15px !important;
+            bottom: 5% !important;
+            padding-bottom: 20px !important;
         }
     }
 
     @media (min-width: 1401px) {
 
-        /* Large desktops - original 1920:650 ratio */
-        .hero-carousel-responsive {
-            aspect-ratio: 2.95 / 1;
-            max-height: 650px;
-        }
-
+        /* Large desktops */
         .carousel-title {
             font-size: 3.5rem !important;
             font-weight: bold;
         }
 
         .carousel-caption {
-            bottom: 2% !important;
-            padding-bottom: 15px !important;
+            bottom: 5% !important;
+            padding-bottom: 25px !important;
         }
     }
 
     /* Carousel caption adjustments */
     .carousel-caption {
-        bottom: 2%;
+        bottom: 5%;
         z-index: 10;
-        padding-bottom: 15px;
+        padding-bottom: 20px;
     }
 
     .carousel-caption .btn {
-        margin-top: 0;
+        margin-top: 1rem;
     }
 
     .carousel-title {
@@ -216,32 +414,177 @@
     </div>
 </section>
 
-<!-- Features / Info -->
+<!-- Features / Info - Always Expanded -->
 <section class="py-5">
     <div class="container text-center">
         <h2 class="mb-5">Experience the Divine</h2>
         <div class="row g-4">
+            <!-- Spiritual Guides Card -->
             <div class="col-md-4">
-                <div class="p-4 border border-secondary rounded glassmorphism">
-                    <h3>Spiritual Guides</h3>
-                    <p>Expert guides to explain the history and significance.</p>
+                <div class="feature-card-merged border border-warning rounded glassmorphism overflow-hidden">
+                    <div class="feature-header-merged p-4">
+                        <i class="bi bi-person-badge fs-1 mb-3 text-warning"></i>
+                        <h3>Spiritual Guides</h3>
+                        <p class="mb-0">Expert guides to explain the history and significance.</p>
+                    </div>
+                    <div class="feature-detail-merged">
+                        <img src="{{ url_for('static', filename='images/channels4_profile.jpg') }}" class="card-img-top"
+                            alt="Spiritual Guides"
+                            onerror="this.src='https://images.unsplash.com/photo-1604881991720-f91add269bed?w=400&h=250&fit=crop'">
+                        <div class="card-body p-4">
+                            <h5 class="card-title text-warning">HG Govind Mohan Prabhuji</h5>
+                            <p class="card-text">HG Govind Mohan Prabhuji is a respected preacher associated with
+                                International Society for Krishna Consciousness (ISKCON).
+                                He is known for his deep scriptural knowledge, heartfelt kirtans, and inspiring lectures
+                                that awaken devotion to Lord Krishna.
+                                Now, he is organizing a spiritually enriching Dwarka Yatra to reveal the divine glories
+                                of Dwarka Dhama, the sacred kingdom of Lord Krishna.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <!-- Comfortable Stay Card -->
             <div class="col-md-4">
-                <div class="p-4 border border-secondary rounded glassmorphism">
-                    <h3>Comfortable Stay</h3>
-                    <p>Premium accommodation arrangements for all yatris.</p>
+                <div class="feature-card-merged border border-warning rounded glassmorphism overflow-hidden">
+                    <div class="feature-header-merged p-4">
+                        <i class="bi bi-house-heart fs-1 mb-3 text-warning"></i>
+                        <h3>Comfortable Stay</h3>
+                        <p class="mb-0">Premium accommodation arrangements for all yatris.</p>
+                    </div>
+                    <div class="feature-detail-merged">
+                        <img src="{{ url_for('static', filename='images/accommodation.jpg') }}" class="card-img-top"
+                            alt="Comfortable Accommodation"
+                            onerror="this.src='https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=400&h=250&fit=crop'">
+                        <div class="card-body p-4">
+                            <h5 class="card-title text-warning">Premium Accommodation</h5>
+                            <p class="card-text">We arrange comfortable and hygienic accommodations near the temple
+                                premises. Our selected hotels and guesthouses ensure you get adequate rest after a day
+                                of spiritual exploration. All accommodations are carefully chosen to provide modern
+                                amenities while maintaining proximity to sacred sites, ensuring convenience and comfort
+                                throughout your yatra.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <!-- Hassle-free Travel Card -->
             <div class="col-md-4">
-                <div class="p-4 border border-secondary rounded glassmorphism">
-                    <h3>Hassle-free Travel</h3>
-                    <p>Complete transport solutions from start to finish.</p>
+                <div class="feature-card-merged border border-warning rounded glassmorphism overflow-hidden">
+                    <div class="feature-header-merged p-4">
+                        <i class="bi bi-bus-front fs-1 mb-3 text-warning"></i>
+                        <h3>Hassle-free Travel</h3>
+                        <p class="mb-0">Complete transport solutions from start to finish.</p>
+                    </div>
+                    <div class="feature-detail-merged">
+                        <img src="{{ url_for('static', filename='images/travel-bus.jpg') }}" class="card-img-top"
+                            alt="Hassle-free Travel"
+                            onerror="this.src='https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=250&fit=crop'">
+                        <div class="card-body p-4">
+                            <h5 class="card-title text-warning">Seamless Transportation</h5>
+                            <p class="card-text">From your departure city to Dwarka and back, we handle all
+                                transportation arrangements. Our modern, air-conditioned coaches ensure comfortable
+                                journeys. We also provide local transportation for temple visits and sightseeing. With
+                                well-planned routes and timely schedules, you can focus entirely on your spiritual
+                                journey without worrying about logistics.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+<style>
+    /* Merged Feature Card Styles - Always Expanded */
+    .feature-card-merged {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .feature-card-merged:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(255, 193, 7, 0.4);
+        border-color: #ffc107 !important;
+    }
+
+    .feature-header-merged {
+        background: rgba(255, 193, 7, 0.1);
+        border-bottom: 2px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .feature-header-merged h3 {
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-detail-merged {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .card-img-top {
+        height: 250px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .feature-card-merged:hover .card-img-top {
+        transform: scale(1.05);
+    }
+
+    .card-body {
+        background: rgba(0, 0, 0, 0.5);
+        flex: 1;
+    }
+
+    .card-text {
+        color: #e0e0e0;
+        line-height: 1.6;
+        text-align: left;
+    }
+
+    .card-title {
+        text-align: left;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .feature-card-merged {
+            margin-bottom: 1rem;
+        }
+
+        .card-img-top {
+            height: 200px;
+        }
+    }
+</style>
+</section>
+
+<style>
+    /* Dwarka Main Image Styling */
+    .dwarka-main-image {
+        max-width: 100%;
+        height: auto;
+        min-height: 400px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .dwarka-main-image:hover {
+        transform: scale(1.03);
+    }
+
+    @media (max-width: 768px) {
+        .dwarka-main-image {
+            min-height: 250px;
+        }
+    }
+</style>
 
 <!-- About Dwarka Section -->
 <section id="about" class="py-5 bg-black bg-opacity-25">
@@ -249,15 +592,15 @@
         <h2 class="text-left mb-5"> About Dwarka</h2>
         <div class="row align-items-center">
             <!-- Left side - Image -->
-            <div class="col-lg-5 mb-4 mb-lg-0">
+            <div class="col-lg-6 mb-4 mb-lg-0">
                 <div class="text-center">
                     <img src="{{ url_for('static', filename='images/Dwarka index.jpg') }}"
-                        class="img-fluid rounded-3 shadow-lg" alt="Dwarka Index" style="max-width: 100%; height: auto;">
+                        class="img-fluid rounded-3 shadow-lg dwarka-main-image" alt="Dwarka Index">
                 </div>
             </div>
 
             <!-- Right side - Text Content -->
-            <div class="col-lg-7">
+            <div class="col-lg-6">
                 <div class="glassmorphism p-5 rounded-3">
                     <p class="text-white lead mb-4 text-justify" style="line-height: 1.8;">
                         Dwarka is one of the most sacred pilgrimage destinations in India, revered as the ancient

@@ -1841,4 +1841,5 @@ if __name__ == '__main__':
     with app.app_context():
         # Cleanup old pending registrations on startup
         cleanup_pending_registrations(minutes=30)
-    app.run(debug=True)
+    # Run on all network interfaces to allow access from other devices
+    app.run(host='0.0.0.0', port=5000, debug=True)
