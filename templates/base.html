@@ -100,9 +100,8 @@
 
         <!-- Help Button -->
 
-        <button class="help-button" id="helpButton" title="Customer Care">
-            <img src="{{ url_for('static', filename='images/Support.png') }}" alt="Support" width="60" height="60"
-                style="border-radius: 50%; object-fit: cover;">
+        <button class="help-button" id="helpButton" title="Need Help? Click here for support">
+            <span class="help-button-text">Need help?</span>
         </button>
     </div>
 
@@ -290,9 +289,11 @@
         }
 
         .help-button {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
+            position: relative;
+            width: auto;
+            height: auto;
+            padding: 14px 24px;
+            border-radius: 30px;
             background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
             border: none;
             box-shadow: 0 4px 20px rgba(255, 193, 7, 0.4);
@@ -305,13 +306,30 @@
         }
 
         .help-button:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
             box-shadow: 0 6px 30px rgba(255, 193, 7, 0.6);
         }
 
         .help-button i {
             font-size: 28px;
             color: white;
+        }
+
+        .help-button-text {
+            position: relative;
+            right: auto;
+            background: transparent;
+            color: #000;
+            padding: 0;
+            border-radius: 0;
+            font-weight: 700;
+            font-size: 1rem;
+            white-space: nowrap;
+            box-shadow: none;
+            opacity: 1;
+            transform: translateX(0);
+            transition: none;
+            pointer-events: auto;
         }
 
         @keyframes pulse {
@@ -406,12 +424,15 @@
             }
 
             .help-button {
-                width: 50px;
-                height: 50px;
+                padding: 12px 20px;
             }
 
             .help-button i {
                 font-size: 24px;
+            }
+
+            .help-button-text {
+                font-size: 0.9rem;
             }
         }
     </style>

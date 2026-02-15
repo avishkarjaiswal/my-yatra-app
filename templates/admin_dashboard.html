@@ -6,7 +6,21 @@
         <div class="row mb-4">
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h2 class="text-white">📊 Admin Dashboard</h2>
+                    <div>
+                        <h2 class="text-white mb-2">📊 Admin Dashboard</h2>
+                        <!-- Registration Toggle -->
+                        <div class="registration-toggle-container d-flex align-items-center">
+                            <span class="text-white me-3">Registration Status:</span>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="registrationToggle"
+                                    style="width: 3.5em; height: 1.75em; cursor: pointer;">
+                                <label class="form-check-label ms-2" for="registrationToggle" id="registrationStatus"
+                                    style="font-weight: 600; font-size: 0.95rem;">
+                                    Loading...
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                     <div>
                         <a href="{{ url_for('admin_create_registration') }}" class="btn btn-primary me-2">
                             <i class="bi bi-plus-circle"></i> Create New Registration
@@ -324,6 +338,28 @@
         border-color: #ffc107;
         color: white;
     }
+
+    /* Registration Toggle Styles */
+    .registration-toggle-container {
+        padding: 10px 15px;
+        background: rgba(255, 193, 7, 0.1);
+        border-radius: 8px;
+        border-left: 4px solid #ffc107;
+    }
+
+    #registrationToggle:checked {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+    #registrationToggle:not(:checked) {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    #registrationToggle:focus {
+        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+    }
 </style>
 
 <script>
@@ -488,6 +524,102 @@
             }
         });
     });
+    });
+</script>
+
+<script>
+    // Registration Toggle Functionality
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggle = document.getElementById('registrationToggle');
+        const statusLabel = document.getElementById('registrationStatus');
+
+        // Load current registration status
+        function loadRegistrationStatus() {
+            fetch('{{ url_for("get_registration_status") }}')
+                .then(response => response.json())
+                .then(data => {
+                    toggle.checked = data.enabled;
+                    updateStatusLabel(data.enabled);
+                })
+                .catch(error => {
+                    console.error('Error loading registration status:', error);
+                    statusLabel.textContent = 'Error loading status';
+                    statusLabel.className = 'form-check-label ms-2 text-danger';
+                });
+        }
+
+        // Update status label text and color
+        function updateStatusLabel(isEnabled) {
+            if (isEnabled) {
+                statusLabel.textContent = '🟢 Registration Open';
+                statusLabel.className = 'form-check-label ms-2 text-success';
+            } else {
+                statusLabel.textContent = '🔴 Registration Closed';
+                statusLabel.className = 'form-check-label ms-2 text-danger';
+            }
+            statusLabel.style.fontWeight = '600';
+            statusLabel.style.fontSize = '0.95rem';
+        }
+
+        // Handle toggle change
+        toggle.addEventListener('change', function () {
+            const newStatus = this.checked;
+            const confirmMessage = newStatus
+                ? 'Are you sure you want to ENABLE registration? Users will be able to register for the yatra.'
+                : 'Are you sure you want to DISABLE registration? Users will NOT be able to register.';
+
+            if (!confirm(confirmMessage)) {
+                // User cancelled, revert the toggle
+                this.checked = !newStatus;
+                return;
+            }
+
+            // Update status label to show loading
+            statusLabel.textContent = 'Updating...';
+            statusLabel.className = 'form-check-label ms-2 text-warning';
+
+            // Send update request
+            fetch('{{ url_for("toggle_registration") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    enabled: newStatus
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateStatusLabel(data.enabled);
+                        // Show success message
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+                        alertDiv.style.zIndex = '9999';
+                        alertDiv.innerHTML = `
+                        <strong>Success!</strong> ${data.message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                        document.body.appendChild(alertDiv);
+                        setTimeout(() => alertDiv.remove(), 3000);
+                    } else {
+                        alert('Error: ' + data.message);
+                        // Revert toggle
+                        toggle.checked = !newStatus;
+                        loadRegistrationStatus();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to update registration status. Please try again.');
+                    // Revert toggle
+                    toggle.checked = !newStatus;
+                    loadRegistrationStatus();
+                });
+        });
+
+        // Initial load
+        loadRegistrationStatus();
     });
 </script>
 

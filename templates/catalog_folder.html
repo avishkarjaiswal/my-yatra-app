@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ folder_name }} - Yatra Catalog{% endblock %}
+
+{% block content %}
+<!-- Page Header with Back Button -->
+<section class="py-5 mt-5">
+    <div class="container">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ url_for('catalog') }}" class="btn btn-outline-warning me-3">
+                <i class="bi bi-arrow-left"></i> Back to Catalog
+            </a>
+            <div>
+                <h1 class="display-4 fw-bold text-white mb-0">
+                    <i class="bi bi-folder-open-fill text-warning"></i> {{ folder_name }}
+                </h1>
+            </div>
+        </div>
+        <p class="lead text-white-50">{{ photos|length }} beautiful memories from {{ folder_name }}</p>
+    </div>
+</section>
+
+<!-- Photo Gallery Grid -->
+<section class="py-5">
+    <div class="container">
+        {% if photos %}
+        <div class="row g-4">
+            {% for photo in photos %}
+            <div class="col-md-4">
+                <div class="gallery-card glassmorphism overflow-hidden rounded-3 shadow-lg">
+                    <img src="{{ url_for('serve_catalog_image', folder_name=folder_name, filename=photo) }}"
+                        alt="{{ photo }}" class="gallery-img w-100" data-bs-toggle="modal" data-bs-target="#imageModal"
+                        data-image="{{ url_for('serve_catalog_image', folder_name=folder_name, filename=photo) }}"
+                        data-title="{{ photo }}">
+                    <div class="gallery-overlay">
+                        <h5 class="text-white"><i class="bi bi-image"></i> {{ photo }}</h5>
+                        <p class="text-white-50 small">Click to view full size</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="glassmorphism p-5 rounded-3">
+                <i class="bi bi-folder-x display-1 text-warning mb-3"></i>
+                <h3 class="text-white mb-3">No Photos Found</h3>
+                <p class="text-white-50">This folder doesn't contain any photos yet.</p>
+                <a href="{{ url_for('catalog') }}" class="btn btn-warning mt-3">
+                    <i class="bi bi-arrow-left"></i> Go Back to Catalog
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 text-center">
+    <div class="container">
+        <div class="glassmorphism p-5 rounded-3">
+            <h2 class="text-white mb-3">Join Us on Our Next Sacred Journey</h2>
+            <p class="lead text-white-50 mb-4">Create your own beautiful memories with us</p>
+            <a href="{{ url_for('register') }}" class="btn btn-warning btn-lg px-5">
+                <i class="bi bi-calendar-check"></i> Register Now
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Image Modal for Full View -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white" id="imageModalLabel">Image</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-0">
+                <img id="modalImage" src="" alt="Full size image" class="img-fluid w-100">
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Gallery Card Styling */
+    .gallery-card {
+        position: relative;
+        height: 300px;
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
+        border: 2px solid rgba(255, 193, 7, 0.2);
+    }
+
+    .gallery-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 15px 40px rgba(255, 215, 0, 0.4) !important;
+        border-color: #ffc107;
+    }
+
+    .gallery-img {
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .gallery-card:hover .gallery-img {
+        transform: scale(1.15);
+    }
+
+    .gallery-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.7), transparent);
+        padding: 20px;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+    }
+
+    .gallery-card:hover .gallery-overlay {
+        transform: translateY(0);
+    }
+
+    .gallery-overlay h5 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+        word-break: break-word;
+    }
+
+    /* Modal Styling */
+    .modal-body img {
+        max-height: 80vh;
+        object-fit: contain;
+    }
+
+    .modal-content {
+        background: rgba(0, 0, 0, 0.95) !important;
+        border: 2px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .modal-header {
+        background: rgba(255, 193, 7, 0.1);
+    }
+
+    /* Back Button Styling */
+    .btn-outline-warning {
+        border-width: 2px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-warning:hover {
+        transform: translateX(-5px);
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .gallery-card {
+            height: 250px;
+        }
+
+        h1.display-4 {
+            font-size: 2rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .gallery-card {
+            height: 200px;
+        }
+
+        h1.display-4 {
+            font-size: 1.5rem;
+        }
+
+        .btn-outline-warning {
+            font-size: 0.9rem;
+            padding: 8px 16px;
+        }
+    }
+
+    /* Page Load Animation */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .gallery-card {
+        animation: fadeInUp 0.5s ease-out;
+    }
+</style>
+
+<script>
+    // Handle modal image display
+    const imageModal = document.getElementById('imageModal');
+    imageModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const imageSrc = button.getAttribute('data-image');
+        const imageTitle = button.getAttribute('data-title');
+
+        const modalImage = document.getElementById('modalImage');
+        const modalTitle = document.getElementById('imageModalLabel');
+
+        modalImage.src = imageSrc;
+        modalTitle.textContent = imageTitle;
+    });
+</script>
+{% endblock %}

@@ -424,20 +424,22 @@
                 <div class="feature-card-merged border border-warning rounded glassmorphism overflow-hidden">
                     <div class="feature-header-merged p-4">
                         <i class="bi bi-person-badge fs-1 mb-3 text-warning"></i>
-                        <h3>Spiritual Guides</h3>
-                        <p class="mb-0">Expert guides to explain the history and significance.</p>
+                        <h3>Our Spiritual Guide</h3>
+                        <p class="mb-0">Prabhuji will reveal the glories of the places we visit.</p>
                     </div>
                     <div class="feature-detail-merged">
                         <img src="{{ url_for('static', filename='images/channels4_profile.jpg') }}" class="card-img-top"
                             alt="Spiritual Guides"
                             onerror="this.src='https://images.unsplash.com/photo-1604881991720-f91add269bed?w=400&h=250&fit=crop'">
                         <div class="card-body p-4">
-                            <h5 class="card-title text-warning">HG Govind Mohan Prabhuji</h5>
+                            <h5 class="card-title text-warning mb-3">HG Govind Mohan Prabhuji</h5>
                             <p class="card-text">HG Govind Mohan Prabhuji is a respected preacher associated with
-                                International Society for Krishna Consciousness (ISKCON).
-                                He is known for his deep scriptural knowledge, heartfelt kirtans, and inspiring lectures
-                                that awaken devotion to Lord Krishna.
-                                Now, he is organizing a spiritually enriching Dwarka Yatra to reveal the divine glories
+                                International Society for Krishna Consciousness (ISKCON).</p>
+                            <p class="card-text">He is known for his deep scriptural knowledge, heartfelt kirtans, and
+                                inspiring lectures
+                                that awaken devotion to Lord Krishna.</p>
+                            <p class="card-text">Now, he is organizing a spiritually enriching Dwarka Yatra to reveal
+                                the divine glories
                                 of Dwarka Dhama, the sacred kingdom of Lord Krishna.</p>
                         </div>
                     </div>
@@ -450,43 +452,74 @@
                     <div class="feature-header-merged p-4">
                         <i class="bi bi-house-heart fs-1 mb-3 text-warning"></i>
                         <h3>Comfortable Stay</h3>
-                        <p class="mb-0">Premium accommodation arrangements for all yatris.</p>
+                        <p class="mb-0">Accommodation arrangements for all yatris.</p>
                     </div>
                     <div class="feature-detail-merged">
                         <img src="{{ url_for('static', filename='images/accommodation.jpg') }}" class="card-img-top"
                             alt="Comfortable Accommodation"
                             onerror="this.src='https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=400&h=250&fit=crop'">
                         <div class="card-body p-4">
-                            <h5 class="card-title text-warning">Premium Accommodation</h5>
-                            <p class="card-text">We arrange comfortable and hygienic accommodations near the temple
-                                premises. Our selected hotels and guesthouses ensure you get adequate rest after a day
-                                of spiritual exploration. All accommodations are carefully chosen to provide modern
-                                amenities while maintaining proximity to sacred sites, ensuring convenience and comfort
-                                throughout your yatra.</p>
+                            <h5 class="card-title text-warning mb-3">Comfortable Accommodation</h5>
+                            <p class="card-text mb-3">We arrange comfortable and hygienic accommodations near the temple
+                                premises to ensure a peaceful and relaxing stay during your yatra.</p>
+
+                            <div class="food-highlight mb-4 p-3 rounded"
+                                style="background: rgba(255, 193, 7, 0.1); border-left: 3px solid #ffc107;">
+                                <p class="card-text mb-0">
+                                    <i class="bi bi-stars text-warning"></i> <strong>Premium Pure Vegetarian
+                                        Food</strong> will be provided by us,
+                                    prepared with utmost hygiene and devotion to maintain the sanctity of your spiritual
+                                    experience.
+                                </p>
+                            </div>
+
+                            <div class="package-pricing">
+                                <h5 class="text-warning mb-3"><i class="bi bi-tag-fill"></i> Package Options:</h5>
+                                <div class="pricing-list">
+                                    <div class="pricing-item mb-2">
+                                        <span class="package-name">Basic:</span>
+                                        <span class="package-price">₹2,000 per day</span>
+                                    </div>
+                                    <div class="pricing-item mb-2">
+                                        <span class="package-name">Standard:</span>
+                                        <span class="package-price">₹5,000 per day</span>
+                                    </div>
+                                    <div class="pricing-item">
+                                        <span class="package-name">Premium:</span>
+                                        <span class="package-price">₹10,000 per day</span>
+                                    </div>
+                                    <div class="pricing-item">
+                                        <p>Note: No Travel Cost has included in this Package. If we book you tickets you
+                                            may pay it later.</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Hassle-free Travel Card -->
+            <!-- Itinerary Card -->
             <div class="col-md-4">
                 <div class="feature-card-merged border border-warning rounded glassmorphism overflow-hidden">
                     <div class="feature-header-merged p-4">
-                        <i class="bi bi-bus-front fs-1 mb-3 text-warning"></i>
-                        <h3>Hassle-free Travel</h3>
-                        <p class="mb-0">Complete transport solutions from start to finish.</p>
+                        <i class="bi bi-map fs-1 mb-3 text-warning"></i>
+                        <h3>Itinerary</h3>
+                        <p class="mb-0">Well-planned journey schedule for your divine yatra.</p>
                     </div>
                     <div class="feature-detail-merged">
-                        <img src="{{ url_for('static', filename='images/travel-bus.jpg') }}" class="card-img-top"
-                            alt="Hassle-free Travel"
+                        <img src="{{ url_for('static', filename='images/unnamed.webp') }}" class="card-img-top"
+                            alt="Itinerary"
                             onerror="this.src='https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=250&fit=crop'">
                         <div class="card-body p-4">
-                            <h5 class="card-title text-warning">Seamless Transportation</h5>
-                            <p class="card-text">From your departure city to Dwarka and back, we handle all
-                                transportation arrangements. Our modern, air-conditioned coaches ensure comfortable
-                                journeys. We also provide local transportation for temple visits and sightseeing. With
-                                well-planned routes and timely schedules, you can focus entirely on your spiritual
-                                journey without worrying about logistics.</p>
+                            <h5 class="card-title text-warning mb-3">Journey Schedule</h5>
+                            <p class="card-text mb-3">Experience a carefully planned spiritual journey covering all
+                                major sacred sites and temples.</p>
+                            <p class="card-text mb-3">Our detailed itinerary includes temple visits, spiritual
+                                discourses, kirtans, and sufficient rest periods, ensuring a balanced and enriching
+                                yatra experience.</p>
+                            <p class="card-text">With well-planned schedules and expert guidance, you can focus entirely
+                                on your spiritual growth and divine experiences.</p>
                         </div>
                     </div>
                 </div>
@@ -540,16 +573,79 @@
     .card-body {
         background: rgba(0, 0, 0, 0.5);
         flex: 1;
+        padding: 1.5rem !important;
     }
 
     .card-text {
         color: #e0e0e0;
-        line-height: 1.6;
+        line-height: 1.8;
         text-align: left;
+        font-size: 1.05rem;
+        margin-bottom: 1rem;
     }
 
     .card-title {
         text-align: left;
+        font-size: 1.4rem !important;
+        font-weight: 700;
+    }
+
+    /* Package Pricing Styles */
+    .package-pricing {
+        margin-top: 1.5rem;
+    }
+
+    .package-pricing h5 {
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .pricing-list {
+        background: rgba(255, 193, 7, 0.05);
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 193, 7, 0.2);
+    }
+
+    .pricing-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255, 193, 7, 0.1);
+        font-size: 1.1rem;
+    }
+
+    .pricing-item:last-child {
+        border-bottom: none;
+    }
+
+    .package-name {
+        font-weight: 700;
+        color: #ffc107;
+        font-size: 1.15rem;
+    }
+
+    .package-price {
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    /* Food Highlight Box */
+    .food-highlight {
+        background: rgba(255, 193, 7, 0.1);
+        border-left: 3px solid #ffc107;
+    }
+
+    .food-highlight .card-text {
+        font-size: 1.05rem;
+        line-height: 1.7;
+    }
+
+    .food-highlight strong {
+        color: #ffc107;
+        font-size: 1.1rem;
     }
 
     /* Responsive adjustments */
@@ -560,6 +656,62 @@
 
         .card-img-top {
             height: 200px;
+        }
+
+        .card-text {
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .card-title {
+            font-size: 1.2rem !important;
+        }
+
+        .package-name {
+            font-size: 1rem;
+        }
+
+        .package-price {
+            font-size: 0.95rem;
+        }
+
+        .pricing-item {
+            font-size: 1rem;
+        }
+
+        .food-highlight .card-text {
+            font-size: 0.95rem;
+        }
+
+        .food-highlight strong {
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .card-text {
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .card-title {
+            font-size: 1.1rem !important;
+        }
+
+        .package-name {
+            font-size: 0.95rem;
+        }
+
+        .package-price {
+            font-size: 0.9rem;
+        }
+
+        .pricing-list {
+            padding: 0.75rem;
+        }
+
+        .food-highlight {
+            padding: 0.75rem !important;
         }
     }
 </style>
