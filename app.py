@@ -115,26 +115,30 @@ def catalog():
     """Display Yatra memories catalog page with folder counts"""
     import os
     
-    # Define catalog path
-    catalog_path = os.path.join(os.path.dirname(__file__), 'catalog')
+    # Photos live in static/images/<FolderName>
+    images_base = os.path.join(os.path.dirname(__file__), 'static', 'images')
     
-    # Count images in each folder
-    def count_images(folder_name):
-        folder_path = os.path.join(catalog_path, folder_name)
+    def get_folder_info(folder_name):
+        folder_path = os.path.join(images_base, folder_name)
         if os.path.exists(folder_path):
-            files = [f for f in os.listdir(folder_path) 
-                    if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp'))]
-            return len(files)
-        return 0
+            files = sorted([f for f in os.listdir(folder_path)
+                            if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp'))])
+            count = len(files)
+            thumbnail = files[0] if files else None
+            return count, thumbnail
+        return 0, None
     
-    vrindavan_count = count_images('Vrindavan')
-    banaras_count = count_images('Banaras')
-    jagannath_puri_count = count_images('Jagannath Puri')
+    vrindavan_count, vrindavan_thumb = get_folder_info('Vrindavan')
+    banaras_count, banaras_thumb     = get_folder_info('Banaras')
+    jagannath_puri_count, jagannath_puri_thumb = get_folder_info('Jagannath Puri')
     
-    return render_template('catalog.html', 
-                         vrindavan_count=vrindavan_count,
-                         banaras_count=banaras_count,
-                         jagannath_puri_count=jagannath_puri_count)
+    return render_template('catalog.html',
+                           vrindavan_count=vrindavan_count,
+                           banaras_count=banaras_count,
+                           jagannath_puri_count=jagannath_puri_count,
+                           vrindavan_thumb=vrindavan_thumb,
+                           banaras_thumb=banaras_thumb,
+                           jagannath_puri_thumb=jagannath_puri_thumb)
 
 @app.route('/catalog/<folder_name>')
 def view_catalog_folder(folder_name):
@@ -147,23 +151,21 @@ def view_catalog_folder(folder_name):
         flash('Invalid folder name', 'error')
         return redirect(url_for('catalog'))
     
-    # Define catalog path
-    catalog_path = os.path.join(os.path.dirname(__file__), 'catalog', folder_name)
+    # Photos live in static/images/<folder_name>
+    folder_path = os.path.join(os.path.dirname(__file__), 'static', 'images', folder_name)
     
-    # Get list of images in this folder
     photos = []
-    if os.path.exists(catalog_path):
-        photos = [f for f in os.listdir(catalog_path) 
-                 if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp'))]
-        photos.sort()  # Sort alphabetically
+    if os.path.exists(folder_path):
+        photos = sorted([f for f in os.listdir(folder_path)
+                         if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp'))])
     
-    return render_template('catalog_folder.html', 
-                         folder_name=folder_name, 
-                         photos=photos)
+    return render_template('catalog_folder.html',
+                           folder_name=folder_name,
+                           photos=photos)
 
 @app.route('/catalog/<folder_name>/<filename>')
 def serve_catalog_image(folder_name, filename):
-    """Serve images from the catalog directory"""
+    """Serve images from static/images/<folder_name>"""
     import os
     from flask import send_from_directory
     
@@ -173,8 +175,105 @@ def serve_catalog_image(folder_name, filename):
         flash('Invalid folder name', 'error')
         return redirect(url_for('catalog'))
     
-    catalog_path = os.path.join(os.path.dirname(__file__), 'catalog', folder_name)
-    return send_from_directory(catalog_path, filename)
+    images_path = os.path.join(os.path.dirname(__file__), 'static', 'images', folder_name)
+    return send_from_directory(images_path, filename)
+
+@app.route('/admin/catalog')
+@login_required
+def admin_catalog():
+    """Admin: Manage catalog folder photos"""
+    import os
+    ALLOWED_FOLDERS = ['Vrindavan', 'Banaras', 'Jagannath Puri']
+    catalog_base = os.path.abspath(os.path.join(os.path.dirname(__file__), 'catalog'))
+    
+    folders_data = {}
+    for folder in ALLOWED_FOLDERS:
+        folder_path = os.path.join(catalog_base, folder)
+        os.makedirs(folder_path, exist_ok=True)
+        photos = sorted([f for f in os.listdir(folder_path)
+                         if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp'))])
+        folders_data[folder] = photos
+
+    return render_template('admin_catalog.html', folders_data=folders_data)
+
+
+@app.route('/admin/catalog/upload', methods=['POST'])
+@login_required
+def admin_catalog_upload():
+    """Admin: Upload photo(s) to a catalog folder"""
+    import os
+    from werkzeug.utils import secure_filename
+
+    ALLOWED_FOLDERS = ['Vrindavan', 'Banaras', 'Jagannath Puri']
+    ALLOWED_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif', '.webp'}
+
+    folder_name = request.form.get('folder_name', '').strip()
+    if folder_name not in ALLOWED_FOLDERS:
+        flash('Invalid folder name.', 'error')
+        return redirect(url_for('admin_catalog'))
+
+    files = request.files.getlist('photos')
+    if not files or all(f.filename == '' for f in files):
+        flash('No files selected.', 'error')
+        return redirect(url_for('admin_catalog'))
+
+    catalog_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'catalog', folder_name))
+    os.makedirs(catalog_path, exist_ok=True)
+
+    uploaded = 0
+    for f in files:
+        if f and f.filename:
+            ext = os.path.splitext(f.filename)[1].lower()
+            if ext not in ALLOWED_EXTENSIONS:
+                flash(f'Skipped {f.filename} — unsupported format.', 'warning')
+                continue
+            filename = secure_filename(f.filename)
+            # Avoid overwriting: add suffix if file already exists
+            base, extension = os.path.splitext(filename)
+            counter = 1
+            save_path = os.path.join(catalog_path, filename)
+            while os.path.exists(save_path):
+                filename = f"{base}_{counter}{extension}"
+                save_path = os.path.join(catalog_path, filename)
+                counter += 1
+            f.save(save_path)
+            uploaded += 1
+
+    if uploaded:
+        flash(f'✅ Successfully uploaded {uploaded} photo(s) to {folder_name}.', 'success')
+    return redirect(url_for('admin_catalog'))
+
+
+@app.route('/admin/catalog/delete', methods=['POST'])
+@login_required
+def admin_catalog_delete():
+    """Admin: Delete a photo from a catalog folder"""
+    import os
+
+    ALLOWED_FOLDERS = ['Vrindavan', 'Banaras', 'Jagannath Puri']
+    data = request.get_json()
+    folder_name = (data or {}).get('folder_name', '').strip()
+    filename = (data or {}).get('filename', '').strip()
+
+    if folder_name not in ALLOWED_FOLDERS or not filename:
+        return jsonify({'success': False, 'message': 'Invalid request.'})
+
+    # Security: no path traversal
+    if '..' in filename or '/' in filename or '\\' in filename:
+        return jsonify({'success': False, 'message': 'Invalid filename.'})
+
+    catalog_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'catalog', folder_name))
+    file_path = os.path.join(catalog_path, filename)
+
+    if not os.path.isfile(file_path):
+        return jsonify({'success': False, 'message': 'File not found.'})
+
+    try:
+        os.remove(file_path)
+        return jsonify({'success': True, 'message': f'{filename} deleted successfully.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -275,7 +374,8 @@ def register():
             flash(f'Registration failed: {str(e)}', 'error')
             return redirect(url_for('register'))
 
-    return render_template('register.html')
+    interest_mode = settings.is_interest_mode_enabled()
+    return render_template('register.html', interest_mode=interest_mode)
 
 @app.route('/package-selection', methods=['GET', 'POST'])
 def package_selection():
@@ -455,6 +555,13 @@ def package_selection():
                 travelers_data.append(traveler_full_data)
 
             
+            # In interest mode, zero out all amounts (no payment involved)
+            if settings.is_interest_mode_enabled():
+                for t in travelers_data:
+                    t['amount'] = 0
+                total_amount = 0
+                print(f"[INTEREST MODE] 💜 Amounts zeroed out for interest registration")
+            
             # Store combined data in session for payment
             session['travelers_data'] = travelers_data
             session['total_amount'] = total_amount
@@ -485,7 +592,8 @@ def package_selection():
         if traveler['age'] <= 10:
             sorted_travelers[idx] = traveler
     
-    return render_template('package_selection.html', travelers=sorted_travelers, pricing=PRICING)
+    interest_mode = settings.is_interest_mode_enabled()
+    return render_template('package_selection.html', travelers=sorted_travelers, pricing=PRICING, interest_mode=interest_mode)
 
 @app.route('/verify-otm', methods=['POST'])
 def verify_otm():
@@ -529,16 +637,20 @@ def registration_summary():
     travelers_data = session.get('travelers_data')
     total_amount = session.get('total_amount')
     
-    if not travelers_data or not total_amount:
+    if not travelers_data or total_amount is None:
         flash('No booking data found. Please start from registration.', 'error')
         return redirect(url_for('register'))
+    
+    # Check if interest mode is active
+    interest_mode = settings.is_interest_mode_enabled()
     
     # Sort travelers: Adults first, then children
     sorted_travelers = sorted(travelers_data, key=lambda x: (x['age'] <= 10, x.get('name', '')))
     
     return render_template('registration_summary.html', 
                          travelers=sorted_travelers, 
-                         total_amount=total_amount)
+                         total_amount=total_amount,
+                         interest_mode=interest_mode)
 
 @app.route('/confirm-and-pay', methods=['POST'])
 def confirm_and_pay():
@@ -650,6 +762,127 @@ def confirm_and_pay():
     
     # User confirmed, proceed to payment
     return redirect(url_for('create_payment'))
+
+
+@app.route('/interest-confirm', methods=['POST'])
+def interest_confirm():
+    """Handle Interest Mode submission - save data without payment"""
+    # Double-check interest mode is still on
+    if not settings.is_interest_mode_enabled():
+        flash('Interest mode is not active.', 'error')
+        return redirect(url_for('register'))
+    
+    travelers_data = session.get('travelers_data')
+    total_amount = session.get('total_amount', 0)
+    
+    if not travelers_data:
+        flash('No booking data found. Please start from registration.', 'error')
+        return redirect(url_for('register'))
+    
+    try:
+        from datetime import datetime
+        import uuid
+        
+        interest_order_ids = []
+        
+        for traveler in travelers_data:
+            # Parse dates if they exist
+            journey_start = None
+            journey_end = None
+            if traveler.get('journey_start_date'):
+                journey_start = datetime.strptime(traveler['journey_start_date'], '%Y-%m-%d').date()
+            if traveler.get('journey_end_date'):
+                journey_end = datetime.strptime(traveler['journey_end_date'], '%Y-%m-%d').date()
+            
+            has_otm = traveler.get('has_otm', False)
+            
+            # Generate unique order ID with INT_ prefix to identify interest registrations
+            prefix = "INT_INS" if has_otm else "INT_OUT"
+            interest_order_id = f"{prefix}_{uuid.uuid4().hex[:12].upper()}"
+            interest_order_ids.append(interest_order_id)
+            
+            if has_otm:
+                passenger = PassengerInsider(
+                    name=traveler['name'],
+                    email=traveler['email'],
+                    phone=traveler['phone'],
+                    alternative_phone=traveler.get('alternative_phone'),
+                    age=traveler['age'],
+                    gender=traveler['gender'],
+                    city=traveler.get('city'),
+                    district=traveler.get('district'),
+                    state=traveler.get('state'),
+                    journey_start_date=journey_start,
+                    journey_end_date=journey_end,
+                    num_days=traveler.get('num_days'),
+                    hotel_category=traveler.get('hotel_category'),
+                    travel_medium=traveler.get('travel_medium'),
+                    has_otm=True,
+                    otm_id=traveler.get('otm_id'),
+                    yatra_class=traveler.get('package', 'N/A'),
+                    razorpay_order_id=interest_order_id,
+                    razorpay_payment_id=None,
+                    amount=traveler.get('amount', 0),
+                    payment_status='not_initiated'  # Interest mode status
+                )
+            else:
+                passenger = PassengerOutsider(
+                    name=traveler['name'],
+                    email=traveler['email'],
+                    phone=traveler['phone'],
+                    alternative_phone=traveler.get('alternative_phone'),
+                    age=traveler['age'],
+                    gender=traveler['gender'],
+                    city=traveler.get('city'),
+                    district=traveler.get('district'),
+                    state=traveler.get('state'),
+                    journey_start_date=journey_start,
+                    journey_end_date=journey_end,
+                    num_days=traveler.get('num_days'),
+                    hotel_category=traveler.get('hotel_category'),
+                    travel_medium=traveler.get('travel_medium'),
+                    has_otm=False,
+                    otm_id=None,
+                    yatra_class=traveler.get('package', 'N/A'),
+                    razorpay_order_id=interest_order_id,
+                    razorpay_payment_id=None,
+                    amount=traveler.get('amount', 0),
+                    payment_status='not_initiated'  # Interest mode status
+                )
+            
+            db.session.add(passenger)
+        
+        db.session.commit()
+        
+        print(f"[INTEREST MODE] ✅ Saved {len(interest_order_ids)} interest registrations: {interest_order_ids}")
+        
+        # Store order IDs for the thank-you page
+        session['interest_order_ids'] = interest_order_ids
+        
+        # Clear booking session data
+        session.pop('travelers_data', None)
+        session.pop('total_amount', None)
+        session.pop('travelers_personal', None)
+        
+        return redirect(url_for('interest_thank_you'))
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"[ERROR] ❌ Interest mode save failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        flash(f'Submission failed: {str(e)}', 'error')
+        return redirect(url_for('registration_summary'))
+
+
+@app.route('/interest-thank-you')
+def interest_thank_you():
+    """Thank you page shown after interest-mode registration"""
+    order_ids = session.get('interest_order_ids', [])
+    if not order_ids:
+        # Still show the page even if session expired, just without IDs
+        pass
+    return render_template('interest_confirmation.html', order_ids=order_ids)
 
 @app.route('/payment')
 def create_payment():
@@ -2032,10 +2265,43 @@ def admin_cleanup_pending():
 def get_registration_status():
     """Get current registration status (admin only)"""
     is_enabled = settings.is_registration_enabled()
+    interest_mode = settings.is_interest_mode_enabled()
     return jsonify({
         'enabled': is_enabled,
+        'interest_mode': interest_mode,
         'message': settings.get_setting('registration_closed_message')
     })
+
+@app.route('/admin/settings/interest-mode/status', methods=['GET'])
+@login_required
+def get_interest_mode_status():
+    """Get current interest mode status (admin only)"""
+    return jsonify({
+        'interest_mode': settings.is_interest_mode_enabled()
+    })
+
+@app.route('/admin/settings/interest-mode/toggle', methods=['POST'])
+@login_required
+def toggle_interest_mode():
+    """Toggle interest mode on/off (admin only)"""
+    try:
+        data = request.get_json()
+        new_status = data.get('interest_mode', False)
+        
+        success = settings.update_setting('interest_mode', new_status)
+        
+        if success:
+            status = 'enabled' if new_status else 'disabled'
+            return jsonify({
+                'success': True,
+                'interest_mode': new_status,
+                'message': f'Interest Mode {status}'
+            })
+        else:
+            return jsonify({'success': False, 'message': 'Failed to update interest mode'}), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/admin/settings/registration/toggle', methods=['POST'])
 @login_required

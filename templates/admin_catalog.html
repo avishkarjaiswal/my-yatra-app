@@ -1,0 +1,406 @@
+{% extends 'base.html' %}
+
+{% block title %}Catalog Manager - Admin{% endblock %}
+
+{% block content %}
+<section class="py-5 mt-5">
+    <div class="container">
+
+        <!-- Header -->
+        <div class="d-flex align-items-center justify-content-between mb-5 flex-wrap gap-3">
+            <div>
+                <h1 class="display-5 fw-bold text-white mb-1">
+                    <i class="bi bi-images text-warning me-2"></i> Catalog Manager
+                </h1>
+                <p class="text-white-50 mb-0">Upload, preview and delete photos for each Yatra destination</p>
+            </div>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-warning">
+                <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else ('warning' if category == 'warning' else 'success') }} alert-dismissible fade show mb-4"
+            role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Folder Sections -->
+        {% set folder_icons = {'Vrindavan': 'bi-flower1', 'Banaras': 'bi-water', 'Jagannath Puri': 'bi-sunset'} %}
+        {% set folder_colors = {'Vrindavan': '#4caf50', 'Banaras': '#ff9800', 'Jagannath Puri': '#2196f3'} %}
+
+        {% for folder_name, photos in folders_data.items() %}
+        <div class="catalog-section glassmorphism rounded-4 p-4 mb-5 shadow-lg">
+
+            <!-- Folder Header -->
+            <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="folder-icon-circle"
+                        style="background: {{ folder_colors[folder_name] }}22; border: 2px solid {{ folder_colors[folder_name] }}55;">
+                        <i class="bi {{ folder_icons[folder_name] }}"
+                            style="color: {{ folder_colors[folder_name] }}; font-size: 1.6rem;"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-white mb-0 fw-bold">{{ folder_name }}</h4>
+                        <span class="text-white-50 small">{{ photos|length }} photo{{ 's' if photos|length != 1 else ''
+                            }}</span>
+                    </div>
+                </div>
+                <a href="{{ url_for('view_catalog_folder', folder_name=folder_name) }}" target="_blank"
+                    class="btn btn-sm btn-outline-light">
+                    <i class="bi bi-eye me-1"></i> Preview Public Page
+                </a>
+            </div>
+
+            <!-- Upload Zone -->
+            <div class="upload-zone mb-4" id="dropzone-{{ loop.index }}"
+                onclick="document.getElementById('file-input-{{ loop.index }}').click()">
+                <i class="bi bi-cloud-arrow-up-fill upload-icon"></i>
+                <p class="mb-1 text-white fw-semibold">Drag & drop photos here</p>
+                <p class="text-white-50 small mb-2">or click to browse files</p>
+                <small class="text-white-50">Supported: JPG, PNG, WEBP, GIF · Multiple files allowed</small>
+                <div class="upload-preview-bar mt-3" id="preview-bar-{{ loop.index }}"></div>
+            </div>
+
+            <!-- Hidden Upload Form -->
+            <form action="{{ url_for('admin_catalog_upload') }}" method="POST" enctype="multipart/form-data"
+                id="upload-form-{{ loop.index }}">
+                <input type="hidden" name="folder_name" value="{{ folder_name }}">
+                <input type="file" id="file-input-{{ loop.index }}" name="photos" multiple
+                    accept=".jpg,.jpeg,.png,.webp,.gif" style="display:none"
+                    onchange="previewFiles(this, {{ loop.index }})">
+                <div class="d-flex justify-content-end gap-2 mb-4" id="upload-actions-{{ loop.index }}"
+                    style="display:none!important">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="clearSelection({{ loop.index }})">
+                        <i class="bi bi-x-circle me-1"></i> Clear
+                    </button>
+                    <button type="submit" class="btn btn-warning btn-sm" id="upload-btn-{{ loop.index }}"
+                        style="display:none">
+                        <i class="bi bi-upload me-1"></i> Upload Selected
+                    </button>
+                </div>
+            </form>
+
+            <!-- Photo Grid -->
+            {% if photos %}
+            <div class="row g-3" id="photo-grid-{{ folder_name | replace(' ', '_') }}">
+                {% for photo in photos %}
+                <div class="col-6 col-sm-4 col-md-3 col-xl-2 photo-item"
+                    id="photo-{{ folder_name | replace(' ', '_') }}-{{ loop.index }}">
+                    <div class="photo-card position-relative overflow-hidden rounded-3">
+                        <img src="{{ url_for('serve_catalog_image', folder_name=folder_name, filename=photo) }}"
+                            alt="{{ photo }}" class="photo-thumb" loading="lazy">
+                        <div class="photo-overlay">
+                            <p class="photo-name text-white small mb-2">{{ photo }}</p>
+                            <button class="btn btn-danger btn-sm delete-btn" data-folder="{{ folder_name }}"
+                                data-filename="{{ photo }}"
+                                data-target="photo-{{ folder_name | replace(' ', '_') }}-{{ loop.index }}"
+                                title="Delete {{ photo }}">
+                                <i class="bi bi-trash3-fill me-1"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4" id="empty-msg-{{ folder_name | replace(' ', '_') }}">
+                <i class="bi bi-folder-x display-3 text-white-50 mb-3 d-block"></i>
+                <p class="text-white-50">No photos yet. Upload some above!</p>
+            </div>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+
+    </div>
+</section>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: #1a1a2e; border: 1px solid rgba(220,53,69,0.4); color: white;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Delete Photo
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to permanently delete <strong id="deleteFileName"
+                        class="text-warning"></strong>?</p>
+                <p class="text-white-50 small mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="bi bi-trash3-fill me-1"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .catalog-section {
+        border: 1px solid rgba(255, 193, 7, 0.15);
+    }
+
+    .folder-icon-circle {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    /* Upload Zone */
+    .upload-zone {
+        border: 2px dashed rgba(255, 193, 7, 0.4);
+        border-radius: 14px;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: rgba(255, 193, 7, 0.03);
+    }
+
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+        border-color: #ffc107;
+        background: rgba(255, 193, 7, 0.08);
+        transform: scale(1.01);
+    }
+
+    .upload-icon {
+        font-size: 2.8rem;
+        color: #ffc107;
+        display: block;
+        margin-bottom: 0.5rem;
+        transition: transform 0.3s ease;
+    }
+
+    .upload-zone:hover .upload-icon {
+        transform: translateY(-4px);
+    }
+
+    .upload-preview-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .preview-chip {
+        background: rgba(255, 193, 7, 0.15);
+        border: 1px solid rgba(255, 193, 7, 0.3);
+        border-radius: 8px;
+        padding: 4px 10px;
+        font-size: 0.78rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        max-width: 160px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Photo Grid */
+    .photo-card {
+        height: 140px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        transition: border-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .photo-card:hover {
+        border-color: rgba(220, 53, 69, 0.6);
+        transform: scale(1.03);
+    }
+
+    .photo-thumb {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: filter 0.3s ease;
+    }
+
+    .photo-card:hover .photo-thumb {
+        filter: brightness(0.45);
+    }
+
+    .photo-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        padding: 8px;
+    }
+
+    .photo-card:hover .photo-overlay {
+        opacity: 1;
+    }
+
+    .photo-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 100%;
+        text-align: center;
+        font-size: 0.72rem;
+    }
+
+    .delete-btn {
+        font-size: 0.75rem;
+        padding: 4px 10px;
+    }
+
+    /* Deleting animation */
+    .photo-item.deleting {
+        opacity: 0.4;
+        pointer-events: none;
+        transition: opacity 0.3s;
+    }
+
+    .photo-item.deleted {
+        animation: fadeOutZoom 0.35s ease forwards;
+    }
+
+    @keyframes fadeOutZoom {
+        to {
+            opacity: 0;
+            transform: scale(0.7);
+            width: 0;
+            padding: 0;
+            margin: 0;
+        }
+    }
+</style>
+
+<script>
+    // ── File Preview ─────────────────────────────────────────────────────────
+    function previewFiles(input, idx) {
+        const bar = document.getElementById(`preview-bar-${idx}`);
+        const uploadBtn = document.getElementById(`upload-btn-${idx}`);
+        bar.innerHTML = '';
+
+        if (!input.files.length) {
+            uploadBtn.style.display = 'none';
+            return;
+        }
+
+        Array.from(input.files).forEach(file => {
+            const chip = document.createElement('span');
+            chip.className = 'preview-chip';
+            chip.innerHTML = `<i class="bi bi-image"></i> ${file.name}`;
+            bar.appendChild(chip);
+        });
+
+        uploadBtn.style.display = 'inline-flex';
+    }
+
+    function clearSelection(idx) {
+        const input = document.getElementById(`file-input-${idx}`);
+        input.value = '';
+        document.getElementById(`preview-bar-${idx}`).innerHTML = '';
+        document.getElementById(`upload-btn-${idx}`).style.display = 'none';
+    }
+
+    // ── Drag & Drop ───────────────────────────────────────────────────────────
+    document.querySelectorAll('.upload-zone').forEach((zone, i) => {
+        const idx = i + 1;
+        zone.addEventListener('dragover', e => {
+            e.preventDefault();
+            zone.classList.add('drag-over');
+        });
+        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+            const input = document.getElementById(`file-input-${idx}`);
+            input.files = e.dataTransfer.files;
+            previewFiles(input, idx);
+        });
+    });
+
+    // ── Delete Photo ──────────────────────────────────────────────────────────
+    let pendingDelete = null;
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.delete-btn');
+        if (!btn) return;
+        pendingDelete = {
+            folder: btn.dataset.folder,
+            filename: btn.dataset.filename,
+            target: btn.dataset.target
+        };
+        document.getElementById('deleteFileName').textContent = btn.dataset.filename;
+        deleteModal.show();
+    });
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+        if (!pendingDelete) return;
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Deleting…';
+
+        const item = document.getElementById(pendingDelete.target);
+        if (item) item.classList.add('deleting');
+
+        fetch('{{ url_for("admin_catalog_delete") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ folder_name: pendingDelete.folder, filename: pendingDelete.filename })
+        })
+            .then(r => r.json())
+            .then(data => {
+                deleteModal.hide();
+                if (data.success) {
+                    if (item) {
+                        item.classList.remove('deleting');
+                        item.classList.add('deleted');
+                        setTimeout(() => item.remove(), 400);
+                    }
+                    showToast('✅ ' + data.message, 'success');
+                } else {
+                    if (item) item.classList.remove('deleting');
+                    showToast('❌ ' + data.message, 'danger');
+                }
+            })
+            .catch(() => {
+                deleteModal.hide();
+                if (item) item.classList.remove('deleting');
+                showToast('❌ Network error. Try again.', 'danger');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-trash3-fill me-1"></i> Delete';
+                pendingDelete = null;
+            });
+    });
+
+    // ── Toast Helper ──────────────────────────────────────────────────────────
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} alert-dismissible position-fixed top-0 start-50 translate-middle-x mt-4 shadow-lg`;
+        toast.style.cssText = 'z-index:9999;min-width:300px;max-width:90vw;';
+        toast.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    }
+</script>
+{% endblock %}

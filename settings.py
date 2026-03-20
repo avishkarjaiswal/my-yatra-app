@@ -11,7 +11,8 @@ SETTINGS_FILE = Path(__file__).parent / 'app_settings.json'
 # Default settings
 DEFAULT_SETTINGS = {
     'registration_enabled': True,
-    'registration_closed_message': 'Thank you for showing your interest. Registration has been closed. For more information please contact our team.'
+    'registration_closed_message': 'Thank you for showing your interest. Registration has been closed. For more information please contact our team.',
+    'interest_mode': False  # When True, registration flow collects info only (no payment)
 }
 
 def get_settings():
@@ -52,3 +53,7 @@ def update_setting(key, value):
 def is_registration_enabled():
     """Check if registration is currently enabled"""
     return get_setting('registration_enabled', True)
+
+def is_interest_mode_enabled():
+    """Check if Interest Mode is active (collect info only, no payment required)"""
+    return get_setting('interest_mode', False)

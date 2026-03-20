@@ -22,12 +22,14 @@
                 </div>
                 <div class="step-label">Review Summary</div>
             </div>
+            {% if not interest_mode %}
             <div class="step-item">
                 <div class="step-circle">
                     <i class="bi bi-credit-card"></i>
                 </div>
                 <div class="step-label">Payment</div>
             </div>
+            {% endif %}
             <div class="step-item">
                 <div class="step-circle">
                     <i class="bi bi-check-circle"></i>
@@ -52,7 +54,14 @@
                                 style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Registration
                                 Summary</span>
                         </h2>
+                        {% if interest_mode %}
+                        <div class="alert" style="background: linear-gradient(135deg, rgba(155,89,182,0.15) 0%, rgba(108,52,131,0.15) 100%); border: 1px solid rgba(155,89,182,0.4); border-radius: 12px; color: #c39bd3; padding: 15px 20px;">
+                            <i class="bi bi-bell-fill me-2" style="color: #9b59b6;"></i>
+                            <strong>Interest Registration Mode</strong> — No payment required right now. Submit your details and we will contact you with further information.
+                        </div>
+                        {% else %}
                         <p class="text-white">Please review your booking details before proceeding to payment</p>
+                        {% endif %}
                     </div>
 
                     <!-- Summary Cards for Each Traveler -->
@@ -177,7 +186,8 @@
                                 </div>
                             </div>
 
-                            <!-- Price Breakdown -->
+                            <!-- Price Breakdown (hidden in interest mode) -->
+                            {% if not interest_mode %}
                             <div class="price-section mt-4 pt-4">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0">
@@ -193,11 +203,13 @@
                                 </div>
                                 {% endif %}
                             </div>
+                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}
 
                     <!-- Grand Total Section -->
+                    {% if not interest_mode %}
                     <div class="grand-total-card mb-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -209,6 +221,7 @@
                             <div class="grand-total-amount">₹{{ total_amount|round|int }}</div>
                         </div>
                     </div>
+                    {% endif %}
 
                     <!-- Action Buttons -->
                     <div class="row g-3">
@@ -218,20 +231,35 @@
                             </a>
                         </div>
                         <div class="col-md-6">
-                            <form method="POST" action="{{ url_for('confirm_and_pay') }}">
-                                <button type="submit" class="btn btn-gradient w-100 btn-action">
-                                    <i class="bi bi-check-circle me-2"></i>Confirm & Proceed to Payment
+                            {% if interest_mode %}
+                            <form method="POST" action="{{ url_for('interest_confirm') }}">
+                                <button type="submit" class="btn btn-interest w-100 btn-action">
+                                    <i class="bi bi-bell me-2"></i>Submit My Interest
                                 </button>
                             </form>
+                            {% else %}
+                            <form method="POST" action="{{ url_for('confirm_and_pay') }}">
+                                <button type="submit" class="btn btn-gradient w-100 btn-action">
+                                    <i class="bi bi-check-circle me-2"></i>Confirm &amp; Proceed to Payment
+                                </button>
+                            </form>
+                            {% endif %}
                         </div>
                     </div>
 
                     <!-- Important Notice -->
+                    {% if interest_mode %}
+                    <div class="notice-box mt-4" style="background: rgba(155,89,182,0.1); border-color: rgba(155,89,182,0.35); color: #c39bd3;">
+                        <i class="bi bi-bell me-2"></i>
+                        <span><strong>Note:</strong> This is an interest registration. No payment will be charged now. Our team will reach out to you with next steps and payment details.</span>
+                    </div>
+                    {% else %}
                     <div class="notice-box mt-4">
                         <i class="bi bi-info-circle me-2"></i>
                         <span><strong>Note:</strong> Please review all details carefully. Once you proceed to payment,
                             you won't be able to modify your booking.</span>
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -418,6 +446,30 @@
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
         color: white;
+    }
+
+    /* Interest Mode Button */
+    .btn-interest {
+        background: linear-gradient(135deg, #9b59b6 0%, #6c3483 100%);
+        border: none;
+        color: white;
+        box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+    }
+
+    .btn-interest:hover {
+        background: linear-gradient(135deg, #8e44ad 0%, #6c3483 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(155, 89, 182, 0.5);
+        color: white;
+    }
+
+    /* Interest Total Card */
+    .interest-total-card {
+        background: linear-gradient(135deg, rgba(155,89,182,0.1) 0%, rgba(108,52,131,0.1) 100%);
+        border: 2px solid rgba(155, 89, 182, 0.3);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(155, 89, 182, 0.1);
     }
 
     /* Notice Box */

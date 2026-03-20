@@ -9,12 +9,24 @@
                     <div>
                         <h2 class="text-white mb-2">📊 Admin Dashboard</h2>
                         <!-- Registration Toggle -->
-                        <div class="registration-toggle-container d-flex align-items-center">
+                        <div class="registration-toggle-container d-flex align-items-center mb-2">
                             <span class="text-white me-3">Registration Status:</span>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="registrationToggle"
                                     style="width: 3.5em; height: 1.75em; cursor: pointer;">
                                 <label class="form-check-label ms-2" for="registrationToggle" id="registrationStatus"
+                                    style="font-weight: 600; font-size: 0.95rem;">
+                                    Loading...
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Interest Mode Toggle -->
+                        <div class="interest-toggle-container d-flex align-items-center">
+                            <span class="text-white me-3">Interest Mode:</span>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="interestModeToggle"
+                                    style="width: 3.5em; height: 1.75em; cursor: pointer;">
+                                <label class="form-check-label ms-2" for="interestModeToggle" id="interestModeStatus"
                                     style="font-weight: 600; font-size: 0.95rem;">
                                     Loading...
                                 </label>
@@ -80,6 +92,11 @@
                         <a href="{{ url_for('admin_dashboard', table='otm_expired') }}"
                             class="list-group-item list-group-item-action {% if current_table == 'otm_expired' %}active{% endif %}">
                             <i class="bi bi-x-circle-fill me-2"></i> Expired OTM IDs
+                        </a>
+                        <a href="{{ url_for('admin_catalog') }}"
+                            class="list-group-item list-group-item-action border-top border-warning mt-2 pt-2"
+                            style="color: #ffc107;">
+                            <i class="bi bi-images me-2"></i> 📸 Catalog Manager
                         </a>
                     </div>
                 </div>
@@ -155,6 +172,8 @@
                                         <span class="badge bg-warning">Pending</span>
                                         {% elif col == 'Failed' %}
                                         <span class="badge bg-danger">Failed</span>
+                                        {% elif col == 'not_initiated' %}
+                                        <span class="badge" style="background: linear-gradient(135deg, #6c3483, #9b59b6); color: white;">🔔 Interest</span>
                                         {% else %}
                                         {{ col }}
                                         {% endif %}
@@ -347,6 +366,14 @@
         border-left: 4px solid #ffc107;
     }
 
+    /* Interest Mode Toggle Styles */
+    .interest-toggle-container {
+        padding: 10px 15px;
+        background: rgba(155, 89, 182, 0.1);
+        border-radius: 8px;
+        border-left: 4px solid #9b59b6;
+    }
+
     #registrationToggle:checked {
         background-color: #28a745;
         border-color: #28a745;
@@ -359,6 +386,20 @@
 
     #registrationToggle:focus {
         box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+    }
+
+    #interestModeToggle:checked {
+        background-color: #9b59b6;
+        border-color: #9b59b6;
+    }
+
+    #interestModeToggle:not(:checked) {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+
+    #interestModeToggle:focus {
+        box-shadow: 0 0 0 0.25rem rgba(155, 89, 182, 0.25);
     }
 </style>
 
@@ -620,6 +661,87 @@
 
         // Initial load
         loadRegistrationStatus();
+    });
+</script>
+
+<script>
+    // Interest Mode Toggle Functionality
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggle = document.getElementById('interestModeToggle');
+        const statusLabel = document.getElementById('interestModeStatus');
+
+        function loadInterestModeStatus() {
+            fetch('{{ url_for("get_interest_mode_status") }}')
+                .then(response => response.json())
+                .then(data => {
+                    toggle.checked = data.interest_mode;
+                    updateInterestLabel(data.interest_mode);
+                })
+                .catch(error => {
+                    console.error('Error loading interest mode status:', error);
+                    statusLabel.textContent = 'Error loading status';
+                    statusLabel.className = 'form-check-label ms-2 text-danger';
+                });
+        }
+
+        function updateInterestLabel(isEnabled) {
+            if (isEnabled) {
+                statusLabel.textContent = '🟣 Interest Mode ON (No Payment)';
+                statusLabel.className = 'form-check-label ms-2';
+                statusLabel.style.color = '#c39bd3';
+            } else {
+                statusLabel.textContent = '⚫ Interest Mode OFF';
+                statusLabel.className = 'form-check-label ms-2 text-secondary';
+                statusLabel.style.color = '';
+            }
+            statusLabel.style.fontWeight = '600';
+            statusLabel.style.fontSize = '0.95rem';
+        }
+
+        toggle.addEventListener('change', function () {
+            const newStatus = this.checked;
+            const confirmMessage = newStatus
+                ? '⚠️ Enable Interest Mode?\n\nIn this mode, users can complete registration WITHOUT any payment. All data will be saved with payment_status = "not_initiated".\n\nThis is useful for gauging interest before official registration opens.'
+                : 'Disable Interest Mode?\n\nUsers will proceed to the normal payment flow.';
+
+            if (!confirm(confirmMessage)) {
+                this.checked = !newStatus;
+                return;
+            }
+
+            statusLabel.textContent = 'Updating...';
+            statusLabel.className = 'form-check-label ms-2 text-warning';
+
+            fetch('{{ url_for("toggle_interest_mode") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ interest_mode: newStatus })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateInterestLabel(data.interest_mode);
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+                        alertDiv.style.zIndex = '9999';
+                        alertDiv.innerHTML = `<strong>Success!</strong> ${data.message} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+                        document.body.appendChild(alertDiv);
+                        setTimeout(() => alertDiv.remove(), 3000);
+                    } else {
+                        alert('Error: ' + data.message);
+                        toggle.checked = !newStatus;
+                        loadInterestModeStatus();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to update interest mode. Please try again.');
+                    toggle.checked = !newStatus;
+                    loadInterestModeStatus();
+                });
+        });
+
+        loadInterestModeStatus();
     });
 </script>
 

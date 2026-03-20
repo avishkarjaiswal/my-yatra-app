@@ -22,12 +22,14 @@
                 </div>
                 <div class="step-label">Review Summary</div>
             </div>
+            {% if not interest_mode %}
             <div class="step-item">
                 <div class="step-circle">
                     <i class="bi bi-credit-card"></i>
                 </div>
                 <div class="step-label">Payment</div>
             </div>
+            {% endif %}
             <div class="step-item">
                 <div class="step-circle">
                     <i class="bi bi-check-circle"></i>
@@ -128,6 +130,12 @@
                         <div
                             style="width: 100px; height: 2px; background: linear-gradient(90deg, transparent, #ffc107, transparent); margin: 15px auto;">
                         </div>
+                        {% if interest_mode %}
+                        <div style="background: linear-gradient(135deg, rgba(155,89,182,0.15) 0%, rgba(108,52,131,0.15) 100%); border: 1px solid rgba(155,89,182,0.4); border-radius: 12px; color: #c39bd3; padding: 12px 20px; margin-top: 15px; font-size: 0.95rem;">
+                            <i class="bi bi-bell-fill me-2" style="color: #9b59b6;"></i>
+                            <strong>Interest Mode</strong> &mdash; Select your preferences. Prices are hidden &amp; no payment required.
+                        </div>
+                        {% endif %}
                     </div>
 
                     <form action="{{ url_for('package_selection') }}" method="POST" id="packageForm">
@@ -164,8 +172,8 @@
                                                 <i class="bi bi-calendar-check"></i> Journey Start Date *
                                             </label>
                                             <input type="text" name="start_date_{{ idx }}"
-                                                class="form-control start-date" data-idx="{{ idx }}" min="2026-01-31"
-                                                max="2026-02-05" value="2026-01-31" required {% if traveler.age <=10
+                                                class="form-control start-date" data-idx="{{ idx }}" min="2026-05-24"
+                                                max="2026-05-30" value="2026-05-24" required {% if traveler.age <=10
                                                 %}disabled{% endif %}>
                                         </div>
                                         <div class="col-md-6">
@@ -173,8 +181,8 @@
                                                 <i class="bi bi-calendar-x"></i> Journey End Date *
                                             </label>
                                             <input type="text" name="end_date_{{ idx }}" class="form-control end-date"
-                                                data-idx="{{ idx }}" min="2026-01-31" max="2026-02-05"
-                                                value="2026-02-05" required {% if traveler.age <=10 %}disabled{% endif
+                                                data-idx="{{ idx }}" min="2026-05-24" max="2026-05-30"
+                                                value="2026-05-30" required {% if traveler.age <=10 %}disabled{% endif
                                                 %}>
                                         </div>
                                         <div class="col-md-12">
@@ -199,9 +207,11 @@
                                                 <label class="btn btn-outline-light w-100 p-3" for="basic_{{ idx }}">
                                                     <span class="package-icon">🏨</span>
                                                     <strong style="font-size: 1.1rem;">Basic</strong><br>
+                                                    {% if not interest_mode %}
                                                     <span
                                                         style="color: #ffc107; font-size: 1.3rem; font-weight: 700;">₹{{
                                                         pricing.hotel.basic }}/day</span><br>
+                                                    {% endif %}
                                                     <small style="color: rgba(255, 255, 255, 0.6);">Essential
                                                         comfort</small>
                                                 </label>
@@ -214,9 +224,11 @@
                                                 <label class="btn btn-outline-light w-100 p-3" for="standard_{{ idx }}">
                                                     <span class="package-icon">🏨</span>
                                                     <strong style="font-size: 1.1rem;">Standard</strong><br>
+                                                    {% if not interest_mode %}
                                                     <span
                                                         style="color: #ffc107; font-size: 1.3rem; font-weight: 700;">₹{{
                                                         pricing.hotel.standard }}/day</span><br>
+                                                    {% endif %}
                                                     <small style="color: rgba(255, 255, 255, 0.6);">Enhanced
                                                         comfort</small>
                                                 </label>
@@ -229,9 +241,11 @@
                                                 <label class="btn btn-outline-light w-100 p-3" for="premium_{{ idx }}">
                                                     <span class="package-icon">🏨</span>
                                                     <strong style="font-size: 1.1rem;">Premium</strong><br>
+                                                    {% if not interest_mode %}
                                                     <span
                                                         style="color: #ffc107; font-size: 1.3rem; font-weight: 700;">₹{{
                                                         pricing.hotel.premium }}/day</span><br>
+                                                    {% endif %}
                                                     <small style="color: rgba(255, 255, 255, 0.6);">Luxury
                                                         experience</small>
                                                 </label>
@@ -246,7 +260,7 @@
                                             <i class="bi bi-egg-fried"></i> Food Package
                                         </label>
                                         <div class="text-white">
-                                            <strong>Premium Food</strong> - ₹{{ pricing.food }}/day
+                                            <strong>Premium Food</strong>{% if not interest_mode %} - ₹{{ pricing.food }}/day{% endif %}
                                             <small class="text-white-50 d-block">Delicious meals included
                                                 (Fixed)</small>
                                         </div>
@@ -294,22 +308,30 @@
                                         </label>
                                         <div class="form-check form-switch mb-3">
                                             <input class="form-check-input travel-enable" type="checkbox"
-                                                id="travel_enable_{{ idx }}" data-idx="{{ idx }}" disabled>
+                                                id="travel_enable_{{ idx }}" data-idx="{{ idx }}"
+                                                {% if traveler.age <= 10 %}disabled{% elif interest_mode %}checked{% else %}disabled{% endif %}>
                                             <label class="form-check-label text-white" for="travel_enable_{{ idx }}">
                                                 Book Travel with us (Delhi to Dwarka)
                                             </label>
+                                            {% if traveler.age <= 10 %}
                                             <small class="d-block text-warning mt-1" id="travel_lock_msg_{{ idx }}">
-                                                {% if traveler.age <= 10 %} <i class="bi bi-lock-fill"></i> Travel will
-                                                    match guardian's selection
-                                                    {% else %}
-                                                    <i class="bi bi-lock-fill"></i> Verify OTM to unlock travel booking
-                                                    {% endif %}
+                                                <i class="bi bi-lock-fill"></i> Travel will match guardian's selection
                                             </small>
+                                            {% elif interest_mode %}
+                                            <small class="d-block mt-1" id="travel_lock_msg_{{ idx }}" style="color: #a3d977;">
+                                                <i class="bi bi-unlock-fill"></i> Select your preferred travel option
+                                            </small>
+                                            {% else %}
+                                            <small class="d-block text-warning mt-1" id="travel_lock_msg_{{ idx }}">
+                                                <i class="bi bi-lock-fill"></i> Verify OTM to unlock travel booking
+                                            </small>
+                                            {% endif %}
                                         </div>
 
-                                        <!-- Travel options (disabled by default) -->
+                                        <!-- Travel options -->
                                         <select name="travel_{{ idx }}" class="form-select travel-select"
-                                            data-idx="{{ idx }}" disabled id="travel_select_{{ idx }}">
+                                            data-idx="{{ idx }}" id="travel_select_{{ idx }}"
+                                            {% if traveler.age <= 10 %}disabled{% elif not interest_mode %}disabled{% endif %}>
                                             <option value="self" data-price="0">Self Travel (No Cost)</option>
                                             <option value="train" data-price="0">Train (Pay Later)</option>
                                             <option value="flight" data-price="0">Flight (Pay Later)</option>
@@ -320,7 +342,8 @@
                                         </div>
                                     </div>
 
-                                    <!-- Price Breakdown -->
+                                    <!-- Price Breakdown (hidden in interest mode) -->
+                                    {% if not interest_mode %}
                                     <div class="mt-4 p-3 rounded"
                                         style="background: rgba(255, 193, 7, 0.15); border: 1px solid rgba(255, 193, 7, 0.3);">
                                         <h6 class="text-warning mb-3"><i class="bi bi-calculator"></i> Price Breakdown
@@ -337,10 +360,12 @@
                                                 id="traveler_total_{{ idx }}">₹0</strong>
                                         </div>
                                     </div>
+                                    {% endif %}
                             </div>
                             {% endfor %}
 
-                            <!-- Grand Total -->
+                            <!-- Grand Total (hidden in interest mode) -->
+                            {% if not interest_mode %}
                             <div class="d-flex justify-content-end align-items-center mb-3 mt-4 p-4 rounded"
                                 style="background: linear-gradient(135deg, rgba(255, 193, 7, 0.2) 0%, rgba(255, 127, 95, 0.2) 100%); border: 2px solid rgba(255, 193, 7, 0.4);">
                                 <h4 class="mb-0">
@@ -349,6 +374,7 @@
                                         style="font-size: 2rem; font-weight: 700; margin-left: 15px;">₹0</span>
                                 </h4>
                             </div>
+                            {% endif %}
 
                             <!-- Navigation Buttons -->
                             <div class="row g-3 mt-2">
@@ -359,9 +385,13 @@
                                     </a>
                                 </div>
                                 <div class="col-md-6">
-                                    <button type="submit" class="btn btn-success btn-lg w-100"
-                                        style="padding: 15px; font-size: 1.2rem; font-weight: 600;">
+                                    <button type="submit" class="btn btn-lg w-100"
+                                        style="padding: 15px; font-size: 1.2rem; font-weight: 600; {% if interest_mode %}background: linear-gradient(135deg, #9b59b6 0%, #6c3483 100%); border: none; color: white; box-shadow: 0 6px 25px rgba(155,89,182,0.4);{% else %}background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border: none; box-shadow: 0 6px 25px rgba(40,167,69,0.4);{% endif %}">
+                                        {% if interest_mode %}
+                                        <i class="bi bi-bell"></i> Continue to Review
+                                        {% else %}
                                         <i class="bi bi-credit-card"></i> Proceed to Payment
+                                        {% endif %}
                                     </button>
                                 </div>
                             </div>
@@ -667,8 +697,8 @@
 
 <script>
     const packagePricing = JSON.parse(document.getElementById('pricing-data').textContent);
-
     const travelersList = JSON.parse(document.getElementById('travelers-data').textContent);
+    const interestMode = {{ 'true' if interest_mode else 'false' }};  // Interest mode flag from server
     // Calculate price for a specific traveler
     function calculateTravelerPrice(idx) {
         const startDate = document.querySelector(`input[name="start_date_${idx}"]`).value;
@@ -943,6 +973,11 @@
         const travelSelect = document.getElementById(`travel_select_${idx}`);
         const travelInfo = document.getElementById(`travel_info_${idx}`);
         const lockMsg = document.getElementById(`travel_lock_msg_${idx}`);
+
+        // In interest mode, travel booking stays unlocked — skip locking
+        if (interestMode) {
+            return;
+        }
 
         if (travelCheckbox) {
             travelCheckbox.checked = false;

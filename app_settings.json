@@ -1,4 +1,5 @@
 {
     "registration_enabled": true,
-    "registration_closed_message": "Thank you for showing your interest. Registration has been closed. For more information please contact our team."
+    "registration_closed_message": "Thank you for showing your interest. Registration has been closed. For more information please contact our team.",
+    "interest_mode": true
 }

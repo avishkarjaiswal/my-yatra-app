@@ -18,17 +18,28 @@
             <!-- Vrindavan Folder -->
             <div class="col-md-4">
                 <a href="{{ url_for('view_catalog_folder', folder_name='Vrindavan') }}" class="text-decoration-none">
-                    <div class="folder-card glassmorphism rounded-3 shadow-lg p-4 text-center h-100">
-                        <div class="folder-icon-wrapper mb-3">
-                            <i class="bi bi-folder-fill folder-icon"></i>
-                            <div class="folder-badge">{{ vrindavan_count }}</div>
+                    <div class="folder-card glassmorphism rounded-3 shadow-lg text-center h-100">
+                        <div class="folder-thumbnail-wrapper">
+                            {% if vrindavan_thumb %}
+                            <img src="{{ url_for('serve_catalog_image', folder_name='Vrindavan', filename=vrindavan_thumb) }}"
+                                alt="Vrindavan" class="folder-thumbnail">
+                            {% else %}
+                            <div class="folder-no-image d-flex align-items-center justify-content-center">
+                                <i class="bi bi-folder-fill folder-icon"></i>
+                            </div>
+                            {% endif %}
+                            <div class="folder-thumbnail-overlay">
+                                <div class="folder-badge">{{ vrindavan_count }}</div>
+                            </div>
                         </div>
-                        <h3 class="folder-title text-white mb-2">Vrindavan</h3>
-                        <p class="folder-description text-white-50">The land of Lord Krishna's divine pastimes</p>
-                        <div class="folder-stats mt-3">
-                            <span class="badge bg-warning text-dark">
-                                <i class="bi bi-images"></i> {{ vrindavan_count }} photos
-                            </span>
+                        <div class="folder-info p-4">
+                            <h3 class="folder-title text-white mb-2">Vrindavan</h3>
+                            <p class="folder-description text-white-50">The land of Lord Krishna's divine pastimes</p>
+                            <div class="folder-stats mt-3">
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-images"></i> {{ vrindavan_count }} photos
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </a>
@@ -37,17 +48,28 @@
             <!-- Banaras Folder -->
             <div class="col-md-4">
                 <a href="{{ url_for('view_catalog_folder', folder_name='Banaras') }}" class="text-decoration-none">
-                    <div class="folder-card glassmorphism rounded-3 shadow-lg p-4 text-center h-100">
-                        <div class="folder-icon-wrapper mb-3">
-                            <i class="bi bi-folder-fill folder-icon"></i>
-                            <div class="folder-badge">{{ banaras_count }}</div>
+                    <div class="folder-card glassmorphism rounded-3 shadow-lg text-center h-100">
+                        <div class="folder-thumbnail-wrapper">
+                            {% if banaras_thumb %}
+                            <img src="{{ url_for('serve_catalog_image', folder_name='Banaras', filename=banaras_thumb) }}"
+                                alt="Banaras" class="folder-thumbnail">
+                            {% else %}
+                            <div class="folder-no-image d-flex align-items-center justify-content-center">
+                                <i class="bi bi-folder-fill folder-icon"></i>
+                            </div>
+                            {% endif %}
+                            <div class="folder-thumbnail-overlay">
+                                <div class="folder-badge">{{ banaras_count }}</div>
+                            </div>
                         </div>
-                        <h3 class="folder-title text-white mb-2">Banaras</h3>
-                        <p class="folder-description text-white-50">The eternal city of Lord Shiva</p>
-                        <div class="folder-stats mt-3">
-                            <span class="badge bg-warning text-dark">
-                                <i class="bi bi-images"></i> {{ banaras_count }} photos
-                            </span>
+                        <div class="folder-info p-4">
+                            <h3 class="folder-title text-white mb-2">Banaras</h3>
+                            <p class="folder-description text-white-50">The eternal city of Lord Shiva</p>
+                            <div class="folder-stats mt-3">
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-images"></i> {{ banaras_count }} photos
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </a>
@@ -57,17 +79,28 @@
             <div class="col-md-4">
                 <a href="{{ url_for('view_catalog_folder', folder_name='Jagannath Puri') }}"
                     class="text-decoration-none">
-                    <div class="folder-card glassmorphism rounded-3 shadow-lg p-4 text-center h-100">
-                        <div class="folder-icon-wrapper mb-3">
-                            <i class="bi bi-folder-fill folder-icon"></i>
-                            <div class="folder-badge">{{ jagannath_puri_count }}</div>
+                    <div class="folder-card glassmorphism rounded-3 shadow-lg text-center h-100">
+                        <div class="folder-thumbnail-wrapper">
+                            {% if jagannath_puri_thumb %}
+                            <img src="{{ url_for('serve_catalog_image', folder_name='Jagannath Puri', filename=jagannath_puri_thumb) }}"
+                                alt="Jagannath Puri" class="folder-thumbnail">
+                            {% else %}
+                            <div class="folder-no-image d-flex align-items-center justify-content-center">
+                                <i class="bi bi-folder-fill folder-icon"></i>
+                            </div>
+                            {% endif %}
+                            <div class="folder-thumbnail-overlay">
+                                <div class="folder-badge">{{ jagannath_puri_count }}</div>
+                            </div>
                         </div>
-                        <h3 class="folder-title text-white mb-2">Jagannath Puri</h3>
-                        <p class="folder-description text-white-50">The sacred abode of Lord Jagannath</p>
-                        <div class="folder-stats mt-3">
-                            <span class="badge bg-warning text-dark">
-                                <i class="bi bi-images"></i> {{ jagannath_puri_count }} photos
-                            </span>
+                        <div class="folder-info p-4">
+                            <h3 class="folder-title text-white mb-2">Jagannath Puri</h3>
+                            <p class="folder-description text-white-50">The sacred abode of Lord Jagannath</p>
+                            <div class="folder-stats mt-3">
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-images"></i> {{ jagannath_puri_count }} photos
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </a>
@@ -121,27 +154,51 @@
         border-color: #ffc107;
     }
 
-    .folder-icon-wrapper {
+    /* Folder Thumbnail Image */
+    .folder-thumbnail-wrapper {
         position: relative;
-        display: inline-block;
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .folder-thumbnail {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .folder-card:hover .folder-thumbnail {
+        transform: scale(1.1);
+    }
+
+    .folder-no-image {
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 193, 7, 0.05);
     }
 
     .folder-icon {
-        font-size: 120px;
+        font-size: 90px;
         color: #ffc107;
         transition: all 0.4s ease;
         filter: drop-shadow(0 10px 20px rgba(255, 193, 7, 0.3));
     }
 
     .folder-card:hover .folder-icon {
-        transform: scale(1.1) rotateY(15deg);
+        transform: scale(1.1);
         filter: drop-shadow(0 15px 30px rgba(255, 193, 7, 0.5));
     }
 
-    .folder-badge {
+    .folder-thumbnail-overlay {
         position: absolute;
         top: 10px;
-        right: -10px;
+        right: 10px;
+    }
+
+    .folder-badge {
         background: linear-gradient(135deg, #ff9800 0%, #f44336 100%);
         color: white;
         font-weight: 700;
