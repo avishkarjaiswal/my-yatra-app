@@ -1508,144 +1508,95 @@ def export_excel():
     """Export data to Excel (admin only)"""
     import pandas as pd
     import io
-    
+
     table_type = request.args.get('table', 'all_passengers')
     data = []
     filename = "export.xlsx"
-    
+
+    def passenger_row(p, ptype=None):
+        row = {}
+        if ptype:
+            row['Passenger Type'] = ptype
+        row['razorpay_order_id']  = p.razorpay_order_id
+        row['name']               = p.name
+        row['email']              = p.email
+        row['phone']              = p.phone
+        row['alternative_phone']  = p.alternative_phone or ''
+        row['city']               = p.city or ''
+        row['district']           = p.district or ''
+        row['state']              = p.state or ''
+        row['age']                = p.age
+        row['gender']             = p.gender
+        row['otm_id']             = p.otm_id if p.otm_id else 'N/A'
+        row['hotel_category']     = p.hotel_category or ''
+        row['travel_medium']      = p.travel_medium or ''
+        row['amount']             = p.amount
+        row['payment_status']     = p.payment_status
+        row['created_at']         = p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else ''
+        return row
+
     try:
         if table_type == 'passenger_insider':
-            # Export only insiders
-            passengers = PassengerInsider.query.all()
+            passengers = PassengerInsider.query.order_by(PassengerInsider.created_at.desc()).all()
             for p in passengers:
-                data.append({
-                    'Order ID': p.razorpay_order_id,
-                    'Name': p.name,
-                    'Email': p.email,
-                    'Phone': p.phone,
-                    'Age': p.age,
-                    'Gender': p.gender,
-                    'OTM ID': p.otm_id,
-                    'Package': p.yatra_class,
-                    'Amount': p.amount,
-                    'Status': p.payment_status,
-                    'Created At': p.created_at
-                })
+                data.append(passenger_row(p))
             filename = "insider_passengers.xlsx"
-            
+
         elif table_type == 'passenger_outsider':
-            # Export only outsiders
-            passengers = PassengerOutsider.query.all()
+            passengers = PassengerOutsider.query.order_by(PassengerOutsider.created_at.desc()).all()
             for p in passengers:
-                data.append({
-                    'Order ID': p.razorpay_order_id,
-                    'Name': p.name,
-                    'Email': p.email,
-                    'Phone': p.phone,
-                    'Age': p.age,
-                    'Gender': p.gender,
-                    'Package': p.yatra_class,
-                    'Amount': p.amount,
-                    'Status': p.payment_status,
-                    'Created At': p.created_at
-                })
+                data.append(passenger_row(p))
             filename = "outsider_passengers.xlsx"
-            
+
         elif table_type == 'transactions':
-            # Export transactions
-            insiders = PassengerInsider.query.all()
+            insiders  = PassengerInsider.query.all()
             outsiders = PassengerOutsider.query.all()
-            for p in insiders + outsiders:
-                data.append({
-                    'Passenger Name': p.name,
-                    'Order ID': p.razorpay_order_id or 'N/A',
-                    'Payment ID': p.razorpay_payment_id or 'N/A',
-                    'Amount': p.amount,
-                    'Payment Status': p.payment_status,
-                    'Created Date': p.created_at
-                })
+            for p in insiders:
+                data.append(passenger_row(p, 'Insider (OTM)'))
+            for p in outsiders:
+                data.append(passenger_row(p, 'Outsider (No OTM)'))
+            data.sort(key=lambda x: x['created_at'], reverse=True)
             filename = "transactions.xlsx"
-            
+
         elif table_type == 'otm_active':
-            # Export active OTM IDs
             otms = OTMActive.query.all()
             for otm in otms:
-                data.append({
-                    'OTM ID': otm.id,
-                    'Created At': otm.created_at
-                })
+                data.append({'OTM ID': otm.id, 'Type': otm.otm_type, 'Created At': otm.created_at})
             filename = "active_otm_ids.xlsx"
-            
+
         elif table_type == 'otm_expired':
-            # Export expired OTM IDs
             otms = OTMExpired.query.all()
             for otm in otms:
-                data.append({
-                    'OTM ID': otm.id,
-                    'Used By Passenger ID': otm.used_by_passenger_id,
-                    'Expired At': otm.expired_at
-                })
+                data.append({'OTM ID': otm.id, 'Used By Passenger ID': otm.used_by_passenger_id, 'Expired At': otm.expired_at})
             filename = "expired_otm_ids.xlsx"
-            
+
         else:  # all_passengers
-            # Export all passengers
-            insiders = PassengerInsider.query.all()
+            insiders  = PassengerInsider.query.all()
             outsiders = PassengerOutsider.query.all()
-            
-            for passenger in insiders:
-                data.append({
-                    'Type': 'Insider (OTM)',
-                    'Order ID': passenger.razorpay_order_id,
-                    'Name': passenger.name,
-                    'Email': passenger.email,
-                    'Phone': passenger.phone,
-                    'Age': passenger.age,
-                    'Gender': passenger.gender,
-                    'OTM ID': passenger.otm_id,
-                    'Package': passenger.yatra_class,
-                    'Amount': passenger.amount,
-                    'Status': passenger.payment_status,
-                    'Created At': passenger.created_at
-                })
-            
-            for passenger in outsiders:
-                data.append({
-                    'Type': 'Outsider',
-                    'Order ID': passenger.razorpay_order_id,
-                    'Name': passenger.name,
-                    'Email': passenger.email,
-                    'Phone': passenger.phone,
-                    'Age': passenger.age,
-                    'Gender': passenger.gender,
-                    'OTM ID': 'N/A',
-                    'Package': passenger.yatra_class,
-                    'Amount': passenger.amount,
-                    'Status': passenger.payment_status,
-                    'Created At': passenger.created_at
-                })
+            for p in insiders:
+                data.append(passenger_row(p, 'Insider (OTM)'))
+            for p in outsiders:
+                data.append(passenger_row(p, 'Outsider (No OTM)'))
+            data.sort(key=lambda x: x['created_at'], reverse=True)
             filename = "all_passengers.xlsx"
-        
-        # Create DataFrame
+
         if not data:
             flash('No data to export', 'warning')
             return redirect(url_for('admin_dashboard', table=table_type))
-        
+
         df = pd.DataFrame(data)
-        
-        # Create Excel file in memory
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df.to_excel(writer, index=False, sheet_name='Data')
         output.seek(0)
-        
-        # Send file with proper headers
+
         return send_file(
             output,
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             as_attachment=True,
             download_name=filename
         )
-    
+
     except Exception as e:
         flash(f'Error exporting to Excel: {str(e)}', 'error')
         return redirect(url_for('admin_dashboard', table=table_type))
@@ -1659,166 +1610,93 @@ def export_csv():
     table_type = request.args.get('table', 'all_passengers')
     data = []
     filename = "export.csv"
-    
+
+    def passenger_row(p, ptype=None):
+        row = {}
+        if ptype:
+            row['Passenger Type'] = ptype
+        row['razorpay_order_id']  = p.razorpay_order_id
+        row['name']               = p.name
+        row['email']              = p.email
+        row['phone']              = p.phone
+        row['alternative_phone']  = p.alternative_phone or ''
+        row['city']               = p.city or ''
+        row['district']           = p.district or ''
+        row['state']              = p.state or ''
+        row['age']                = p.age
+        row['gender']             = p.gender
+        row['otm_id']             = p.otm_id if p.otm_id else 'N/A'
+        row['hotel_category']     = p.hotel_category or ''
+        row['travel_medium']      = p.travel_medium or ''
+        row['amount']             = p.amount
+        row['payment_status']     = p.payment_status
+        row['created_at']         = p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else ''
+        return row
+
     try:
         if table_type == 'passenger_insider':
-            # Export only insiders
-            passengers = PassengerInsider.query.all()
+            passengers = PassengerInsider.query.order_by(PassengerInsider.created_at.desc()).all()
             for p in passengers:
-                data.append({
-                    'Passenger Type': 'Insider (OTM)',
-                    'Order ID': p.razorpay_order_id,
-                    'Name': p.name,
-                    'Email': p.email,
-                    'Phone': p.phone,
-                    'Alternative Phone': p.alternative_phone or '',
-                    'Age': p.age,
-                    'Gender': p.gender,
-                    'City': p.city or '',
-                    'District': p.district or '',
-                    'State': p.state or '',
-                    'OTM ID': p.otm_id,
-                    'Package': p.yatra_class,
-                    'Order ID': p.razorpay_order_id,
-                    'Payment ID': p.razorpay_payment_id or '',
-                    'Amount': p.amount,
-                    'Payment Status': p.payment_status,
-                    'Created At': p.created_at
-                })
+                data.append(passenger_row(p))
             filename = "insider_passengers.csv"
-            
+
         elif table_type == 'passenger_outsider':
-            # Export only outsiders
-            passengers = PassengerOutsider.query.all()
+            passengers = PassengerOutsider.query.order_by(PassengerOutsider.created_at.desc()).all()
             for p in passengers:
-                data.append({
-                    'Passenger Type': 'Outsider (No OTM)',
-                    'Order ID': p.razorpay_order_id,
-                    'Name': p.name,
-                    'Email': p.email,
-                    'Phone': p.phone,
-                    'Alternative Phone': p.alternative_phone or '',
-                    'Age': p.age,
-                    'Gender': p.gender,
-                    'City': p.city or '',
-                    'District': p.district or '',
-                    'State': p.state or '',
-                    'OTM ID': 'N/A',
-                    'Package': p.yatra_class,
-                    'Order ID': p.razorpay_order_id,
-                    'Payment ID': p.razorpay_payment_id or '',
-                    'Amount': p.amount,
-                    'Payment Status': p.payment_status,
-                    'Created At': p.created_at
-                })
+                data.append(passenger_row(p))
             filename = "outsider_passengers.csv"
-            
+
         elif table_type == 'transactions':
-            # Export transactions
-            insiders = PassengerInsider.query.all()
+            insiders  = PassengerInsider.query.all()
             outsiders = PassengerOutsider.query.all()
-            for p in insiders + outsiders:
-                data.append({
-                    'Passenger Name': p.name,
-                    'Passenger Type': 'Insider (OTM)' if hasattr(p, 'otm_id') and p.otm_id else 'Outsider',
-                    'Order ID': p.razorpay_order_id or 'N/A',
-                    'Payment ID': p.razorpay_payment_id or 'N/A',
-                    'Amount': p.amount,
-                    'Payment Status': p.payment_status,
-                    'Created Date': p.created_at
-                })
+            for p in insiders:
+                data.append(passenger_row(p, 'Insider (OTM)'))
+            for p in outsiders:
+                data.append(passenger_row(p, 'Outsider (No OTM)'))
+            data.sort(key=lambda x: x['created_at'], reverse=True)
             filename = "transactions.csv"
-            
+
         elif table_type == 'otm_active':
-            # Export active OTM IDs
             otms = OTMActive.query.all()
             for otm in otms:
-                data.append({
-                    'OTM ID': otm.id,
-                    'Created At': otm.created_at
-                })
+                data.append({'OTM ID': otm.id, 'Type': otm.otm_type, 'Created At': otm.created_at})
             filename = "active_otm_ids.csv"
-            
+
         elif table_type == 'otm_expired':
-            # Export expired OTM IDs
             otms = OTMExpired.query.all()
             for otm in otms:
-                data.append({
-                    'OTM ID': otm.id,
-                    'Used By Passenger ID': otm.used_by_passenger_id,
-                    'Expired At': otm.expired_at
-                })
+                data.append({'OTM ID': otm.id, 'Used By Passenger ID': otm.used_by_passenger_id, 'Expired At': otm.expired_at})
             filename = "expired_otm_ids.csv"
-            
+
         else:  # all_passengers
-            # Export all passengers
-            insiders = PassengerInsider.query.all()
+            insiders  = PassengerInsider.query.all()
             outsiders = PassengerOutsider.query.all()
-            
-            for passenger in insiders:
-                data.append({
-                    'Passenger Type': 'Insider (OTM)',
-                    'Order ID': passenger.razorpay_order_id,
-                    'Name': passenger.name,
-                    'Email': passenger.email,
-                    'Phone': passenger.phone,
-                    'Alternative Phone': passenger.alternative_phone or '',
-                    'Age': passenger.age,
-                    'Gender': passenger.gender,
-                    'City': passenger.city or '',
-                    'District': passenger.district or '',
-                    'State': passenger.state or '',
-                    'OTM ID': passenger.otm_id,
-                    'Yatra Class': passenger.yatra_class,
-                    'Payment ID': passenger.razorpay_payment_id or '',
-                    'Amount': passenger.amount,
-                    'Payment Status': passenger.payment_status,
-                    'Created At': passenger.created_at
-                })
-            
-            for passenger in outsiders:
-                data.append({
-                    'Passenger Type': 'Outsider (No OTM)',
-                    'Order ID': passenger.razorpay_order_id,
-                    'Name': passenger.name,
-                    'Email': passenger.email,
-                    'Phone': passenger.phone,
-                    'Alternative Phone': passenger.alternative_phone or '',
-                    'Age': passenger.age,
-                    'Gender': passenger.gender,
-                    'City': passenger.city or '',
-                    'District': passenger.district or '',
-                    'State': passenger.state or '',
-                    'OTM ID': 'N/A',
-                    'Yatra Class': passenger.yatra_class,
-                    'Payment ID': passenger.razorpay_payment_id or '',
-                    'Amount': passenger.amount,
-                    'Payment Status': passenger.payment_status,
-                    'Created At': passenger.created_at
-                })
+            for p in insiders:
+                data.append(passenger_row(p, 'Insider (OTM)'))
+            for p in outsiders:
+                data.append(passenger_row(p, 'Outsider (No OTM)'))
+            data.sort(key=lambda x: x['created_at'], reverse=True)
             filename = "all_passengers.csv"
-        
-        # Check if there's data to export
+
         if not data:
             flash('No data to export', 'warning')
             return redirect(url_for('admin_dashboard', table=table_type))
-        
-        # Create DataFrame and convert to CSV
+
         df = pd.DataFrame(data)
-        
         output = io.StringIO()
         df.to_csv(output, index=False)
         output.seek(0)
-        
+
         return Response(
             output.getvalue(),
             mimetype='text/csv',
             headers={'Content-Disposition': f'attachment; filename={filename}'}
         )
-    
+
     except Exception as e:
         flash(f'Error exporting to CSV: {str(e)}', 'error')
         return redirect(url_for('admin_dashboard', table=table_type))
+
 
 
 @app.route('/admin/update-record', methods=['POST'])

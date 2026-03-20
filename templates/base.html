@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Dwarka Yatra{% endblock %}</title>
+    <title>{% block title %}Krishna Conscious Yatra{% endblock %}</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -23,7 +23,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-transparent fixed-top glassmorphism">
         <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">Dwarka Yatra</a>
+            <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">Krishna Conscious Yatra</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -58,7 +58,7 @@
     <!-- Footer -->
     <footer class="bg-dark text-white text-center py-4 mt-5">
         <div class="container">
-            <p class="mb-0">&copy; 2024 Dwarka Yatra Registration. All Rights Reserved.</p>
+            <p class="mb-0">&copy; 2026 Krishna Conscious Yatra Registration. All Rights Reserved.</p>
         </div>
     </footer>
 
@@ -79,7 +79,7 @@
                     <div class="contact-item mb-3">
                         <i class="bi bi-envelope-fill text-warning"></i>
                         <div>
-                            <small class="text-muted d-block">Email Us</small>
+                            <small class="text-white d-block">Email Us</small>
                             <a href="mailto:dwarka.yatra2026@gmail.com" class="text-white text-decoration-none">
                                 dwarka.yatra2026@gmail.com
                             </a>
@@ -88,9 +88,9 @@
                     <div class="contact-item">
                         <i class="bi bi-telephone-fill text-warning"></i>
                         <div>
-                            <small class="text-muted d-block">Call Us</small>
-                            <a href="tel:+919898989898" class="text-white text-decoration-none">
-                                +91 98989 89898
+                            <small class="text-white d-block">Call Us</small>
+                            <a href="tel:+918881106110" class="text-white text-decoration-none">
+                                +91 8881106110
                             </a>
                         </div>
                     </div>
@@ -226,58 +226,59 @@
             }
         }
 
-        /* Responsive Design */
+        /* Responsive Design — always horizontal */
         @media (max-width: 768px) {
+            .step-indicator-container {
+                padding: 15px 0;
+            }
+
             .step-indicator {
-                flex-direction: column;
-                gap: 30px;
+                flex-direction: row;
+                padding: 0 8px;
+                gap: 0;
             }
 
             .step-indicator::before {
-                display: none;
-            }
-
-            .step-item::after {
-                content: '';
-                position: absolute;
-                top: 80px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 3px;
-                height: 30px;
-                background: rgba(255, 255, 255, 0.2);
-            }
-
-            .step-item:last-child::after {
-                display: none;
-            }
-
-            .step-item.completed::after {
-                background: #28a745;
+                top: 22px;
+                left: 5%;
+                right: 5%;
+                height: 2px;
             }
 
             .step-circle {
-                width: 70px;
-                height: 70px;
-            }
-
-            .step-label {
-                font-size: 16px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .step-circle {
-                width: 60px;
-                height: 60px;
+                width: 44px;
+                height: 44px;
+                margin: 0 auto 6px;
+                border-width: 2px;
             }
 
             .step-circle i {
-                font-size: 20px;
+                font-size: 16px;
             }
 
             .step-label {
-                font-size: 13px;
+                font-size: 10px;
+                font-weight: 600;
+                line-height: 1.2;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .step-circle {
+                width: 36px;
+                height: 36px;
+            }
+
+            .step-circle i {
+                font-size: 14px;
+            }
+
+            .step-label {
+                font-size: 9px;
+            }
+
+            .step-indicator::before {
+                top: 18px;
             }
         }
 
