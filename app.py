@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file, Response, session, jsonify
 from models import db, PassengerInsider, PassengerOutsider, OTMActive, OTMExpired
-from email_utils import generate_receipt_pdf, send_receipt_email
+from email_utils import generate_receipt_pdf, send_receipt_email, send_interest_email
 import settings  # Application settings manager
 import os
 import pandas as pd
@@ -45,12 +45,12 @@ API_SECRET = os.getenv('RAZORPAY_API_SECRET')
 if not API_KEY or not API_SECRET:
     raise ValueError("⚠️ RAZORPAY_API_KEY and RAZORPAY_API_SECRET must be set in .env file")
 
-# Gmail configuration for sending receipts - Load from environment variables
-GMAIL_ADDRESS = os.getenv('GMAIL_ADDRESS')
-GMAIL_APP_PASSWORD = os.getenv('GMAIL_APP_PASSWORD')
+# ZeptoMail configuration for sending receipts - Load from environment variables
+ZEPTO_EMAIL_ADDRESS = os.getenv('ZEPTO_EMAIL_ADDRESS')
+ZEPTO_APP_PASSWORD = os.getenv('ZEPTO_APP_PASSWORD')
 
-if not GMAIL_ADDRESS or not GMAIL_APP_PASSWORD:
-    print("⚠️ WARNING: Gmail credentials not set. Email functionality will not work.")
+if not ZEPTO_EMAIL_ADDRESS or not ZEPTO_APP_PASSWORD:
+    print("⚠️ WARNING: ZeptoMail credentials not set. Email functionality will not work.")
 
 # Admin credentials - Load from environment variables
 ADMIN_USERNAME = os.getenv('ADMIN_USERNAME', 'admin')
@@ -856,6 +856,46 @@ def interest_confirm():
         
         print(f"[INTEREST MODE] ✅ Saved {len(interest_order_ids)} interest registrations: {interest_order_ids}")
         
+        # Send interest emails asynchronously (don't block the response)
+        def send_interest_emails_async(order_ids):
+            with app.app_context():
+                try:
+                    # Query back the passengers newly created
+                    passengers = PassengerInsider.query.filter(PassengerInsider.razorpay_order_id.in_(order_ids)).all() + \
+                                 PassengerOutsider.query.filter(PassengerOutsider.razorpay_order_id.in_(order_ids)).all()
+                    
+                    if passengers:
+                        unique_emails = set()
+                        for p in passengers:
+                            if p.email and p.email.strip():
+                                unique_emails.add(p.email.strip().lower())
+                        
+                        emails_sent = 0
+                        for recipient_email in unique_emails:
+                            try:
+                                send_interest_email(
+                                    to_email=recipient_email,
+                                    passengers=passengers,
+                                    zepto_address=ZEPTO_EMAIL_ADDRESS,
+                                    zepto_app_password=ZEPTO_APP_PASSWORD
+                                )
+                                emails_sent += 1
+                            except Exception as individual_email_error:
+                                print(f"[ERROR] ❌ Failed to send interest email to {recipient_email}: {str(individual_email_error)}")
+                        
+                        print(f"[INFO] 📧 Sent {emails_sent} individual interest email(s) to unique travelers")
+                except Exception as email_error:
+                    print(f"[ERROR] ❌ Interest email sending failed but registration successful: {str(email_error)}")
+                    import traceback
+                    traceback.print_exc()
+
+        # Start email sending in background thread
+        import threading
+        email_thread = threading.Thread(target=send_interest_emails_async, args=(interest_order_ids,))
+        email_thread.daemon = True
+        email_thread.start()
+        print("[INFO] 📧 Interest email sending started in background thread")
+        
         # Store order IDs for the thank-you page
         session['interest_order_ids'] = interest_order_ids
         
@@ -1161,8 +1201,8 @@ def verify_payment():
                                             pdf_buffer=pdf_buffer,
                                             passengers=all_passengers,
                                             total_amount=total_amount,
-                                            gmail_address=GMAIL_ADDRESS,
-                                            gmail_app_password=GMAIL_APP_PASSWORD
+                                            zepto_address=ZEPTO_EMAIL_ADDRESS,
+                                            zepto_app_password=ZEPTO_APP_PASSWORD
                                         )
                                         emails_sent += 1
                                     except Exception as individual_email_error:

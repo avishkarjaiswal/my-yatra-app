@@ -325,17 +325,17 @@ def generate_receipt_pdf(passengers, total_amount):
     return buffer
 
 
-def send_receipt_email(to_email, pdf_buffer, passengers, total_amount, gmail_address, gmail_app_password):
+def send_receipt_email(to_email, pdf_buffer, passengers, total_amount, zepto_address, zepto_app_password):
     """
-    Send receipt email with PDF attachment via Gmail SMTP
+    Send receipt email with PDF attachment via ZeptoMail SMTP
     
     Args:
         to_email: Recipient email address
         pdf_buffer: BytesIO buffer containing the PDF
         passengers: List of Passenger objects
         total_amount: Total payment amount
-        gmail_address: Gmail sender address
-        gmail_app_password: Gmail app password
+        zepto_address: ZeptoMail sender address
+        zepto_app_password: ZeptoMail Send Mail Token
         
     Returns:
         bool: True if email sent successfully, False otherwise
@@ -343,7 +343,7 @@ def send_receipt_email(to_email, pdf_buffer, passengers, total_amount, gmail_add
     try:
         # Create message
         msg = MIMEMultipart()
-        msg['From'] = gmail_address
+        msg['From'] = zepto_address
         msg['To'] = to_email
         msg['Subject'] = 'Dwarka Yatra - Your Registration Confirmed! 🙏'
         
@@ -404,10 +404,10 @@ def send_receipt_email(to_email, pdf_buffer, passengers, total_amount, gmail_add
         pdf_attachment.add_header('Content-Disposition', 'attachment', filename='Dwarka_Yatra_Receipt.pdf')
         msg.attach(pdf_attachment)
         
-        # Send email via Gmail SMTP
-        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+        # Send email via ZeptoMail SMTP
+        with smtplib.SMTP('smtp.zeptomail.in', 587) as server:
             server.starttls()
-            server.login(gmail_address, gmail_app_password)
+            server.login('emailapikey', zepto_app_password)
             server.send_message(msg)
             
         print(f"[SUCCESS] ✅ Email sent successfully to {to_email}")
@@ -415,6 +415,91 @@ def send_receipt_email(to_email, pdf_buffer, passengers, total_amount, gmail_add
         
     except Exception as e:
         print(f"[ERROR] ❌ Failed to send email: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+def send_interest_email(to_email, passengers, zepto_address, zepto_app_password):
+    """
+    Send interest registration confirmation email without PDF
+    
+    Args:
+        to_email: Recipient email address
+        passengers: List of Passenger objects
+        zepto_address: ZeptoMail sender address
+        zepto_app_password: ZeptoMail Send Mail Token
+        
+    Returns:
+        bool: True if email sent successfully, False otherwise
+    """
+    try:
+        # Create message
+        msg = MIMEMultipart()
+        msg['From'] = zepto_address
+        msg['To'] = to_email
+        msg['Subject'] = 'Dwarka Yatra - Thank You For Your Interest! 🙏'
+        
+        # Create HTML email body
+        traveler_names = ', '.join([p.name for p in passengers])
+        
+        html_body = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                        <h1 style="color: white; margin: 0; font-size: 28px;">🦚 Dwarka Yatra</h1>
+                        <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Interest Registered Successfully</p>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
+                        <h2 style="color: #ffc107; margin-top: 0;">Hare Krishna! 🙏</h2>
+                        
+                        <p>Thank you for expressing your interest in the Dwarka Yatra.</p>
+                        <p>We have successfully recorded your interest registration for <strong>{traveler_names}</strong>.</p>
+                        
+                        <p>Currently, our regular registrations are on hold, but we have safely stored your details.</p>
+                        
+                        <div style="background: white; padding: 20px; border-left: 4px solid #1e3c72; margin: 20px 0;">
+                            <h3 style="margin-top: 0; color: #1e3c72;">What happens next?</h3>
+                            <p style="margin: 5px 0;">Our team will reach out to you directly when more slots become available or if there are any updates regarding your yatra package.</p>
+                        </div>
+                        
+                        <div style="background: white; padding: 20px; border-left: 4px solid #25D366; margin: 20px 0; text-align: center;">
+                            <h3 style="margin-top: 0; color: #25D366;">📱 Join Our WhatsApp Group</h3>
+                            <p style="margin: 10px 0;">Stay connected with us! Join our official WhatsApp group for important updates.</p>
+                            <a href="https://chat.whatsapp.com/IKqLI5yzpI21DGCZ6Q0v4N" style="display: inline-block; background: #25D366; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">Join WhatsApp Group</a>
+                        </div>
+                        
+                        <p style="margin-top: 20px;">If you have any questions, feel free to reply to this email or contact us.</p>
+                        
+                        <p style="margin-top: 20px;">
+                            <strong>Hari Hari!</strong><br>
+                            Team Dwarka Yatra
+                        </p>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px; padding: 20px; color: #666; font-size: 12px;">
+                        <p>This is an automated email. Please do not reply to this message.</p>
+                    </div>
+                </div>
+            </body>
+        </html>
+        """
+        
+        # Attach HTML body
+        msg.attach(MIMEText(html_body, 'html'))
+        
+        # Send email via ZeptoMail SMTP
+        with smtplib.SMTP('smtp.zeptomail.in', 587) as server:
+            server.starttls()
+            server.login('emailapikey', zepto_app_password)
+            server.send_message(msg)
+            
+        print(f"[SUCCESS] ✅ Interest email sent successfully to {to_email}")
+        return True
+        
+    except Exception as e:
+        print(f"[ERROR] ❌ Failed to send interest email: {str(e)}")
         import traceback
         traceback.print_exc()
         return False
