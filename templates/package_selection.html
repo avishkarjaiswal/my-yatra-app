@@ -171,19 +171,21 @@
                                             <label class="form-label">
                                                 <i class="bi bi-calendar-check"></i> Journey Start Date *
                                             </label>
-                                            <input type="text" name="start_date_{{ idx }}"
-                                                class="form-control start-date" data-idx="{{ idx }}" min="2026-05-24"
-                                                max="2026-05-30" value="2026-05-24" required {% if traveler.age <=10
-                                                %}disabled{% endif %}>
+                                            <input type="text"
+                                                class="form-control start-date-display"
+                                                value="24 May 2026" readonly
+                                                style="cursor: default; opacity: 0.85;">
+                                            <input type="hidden" name="start_date_{{ idx }}" value="2026-05-24">
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label">
                                                 <i class="bi bi-calendar-x"></i> Journey End Date *
                                             </label>
-                                            <input type="text" name="end_date_{{ idx }}" class="form-control end-date"
-                                                data-idx="{{ idx }}" min="2026-05-24" max="2026-05-30"
-                                                value="2026-05-30" required {% if traveler.age <=10 %}disabled{% endif
-                                                %}>
+                                            <input type="text"
+                                                class="form-control end-date-display"
+                                                value="30 May 2026" readonly
+                                                style="cursor: default; opacity: 0.85;">
+                                            <input type="hidden" name="end_date_{{ idx }}" value="2026-05-30">
                                         </div>
                                         <div class="col-md-12">
                                             <div class="alert alert-info" id="days_{{ idx }}" style="display:none;">
@@ -267,7 +269,7 @@
                                     </div>
 
                                     <!-- OTM Membership with Verification -->
-                                    <div class="mb-4">
+                                    <div class="mb-4 d-none">
                                         <label class="form-label">
                                             <i class="bi bi-card-checklist"></i> Do you have One Time Membership (OTM)?
                                         </label>
@@ -309,7 +311,7 @@
                                         <div class="form-check form-switch mb-3">
                                             <input class="form-check-input travel-enable" type="checkbox"
                                                 id="travel_enable_{{ idx }}" data-idx="{{ idx }}"
-                                                {% if traveler.age <= 10 %}disabled{% elif interest_mode %}checked{% else %}disabled{% endif %}>
+                                                {% if traveler.age <= 10 %}disabled{% elif interest_mode %}checked{% endif %}>
                                             <label class="form-check-label text-white" for="travel_enable_{{ idx }}">
                                                 Book Travel with us (Delhi to Dwarka)
                                             </label>
@@ -317,13 +319,9 @@
                                             <small class="d-block text-warning mt-1" id="travel_lock_msg_{{ idx }}">
                                                 <i class="bi bi-lock-fill"></i> Travel will match guardian's selection
                                             </small>
-                                            {% elif interest_mode %}
+                                            {% else %}
                                             <small class="d-block mt-1" id="travel_lock_msg_{{ idx }}" style="color: #a3d977;">
                                                 <i class="bi bi-unlock-fill"></i> Select your preferred travel option
-                                            </small>
-                                            {% else %}
-                                            <small class="d-block text-warning mt-1" id="travel_lock_msg_{{ idx }}">
-                                                <i class="bi bi-lock-fill"></i> Verify OTM to unlock travel booking
                                             </small>
                                             {% endif %}
                                         </div>
@@ -650,26 +648,18 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
+    // Journey dates are fixed - display formatted date text
     document.addEventListener("DOMContentLoaded", function () {
-        // Initialize Flatpickr for date inputs
-        flatpickr(".start-date, .end-date", {
-            dateFormat: "Y-m-d",     // Format sent to server
-            altInput: true,          // Enable alternative input for display
-            altFormat: "d/m/Y",      // Format shown to user (dd/MM/yyyy)
-            disableMobile: true,     // Force Flatpickr UI on mobile
-            allowInput: true,        // Allow manual entry if needed
-            locale: {
-                firstDayOfWeek: 1    // Start week on Monday
-            },
-            onReady: function (selectedDates, dateStr, instance) {
-                // Read min and max attributes from the original element
-                const minDate = instance.element.getAttribute('min');
-                const maxDate = instance.element.getAttribute('max');
-
-                if (minDate) instance.set('minDate', minDate);
-                if (maxDate) instance.set('maxDate', maxDate);
+        document.querySelectorAll('.start-date, .end-date').forEach(function(input) {
+            const raw = input.value; // e.g. "2026-05-24"
+            if (raw) {
+                const parts = raw.split('-');
+                if (parts.length === 3) {
+                    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                    const formatted = parts[2] + ' ' + months[parseInt(parts[1], 10) - 1] + ' ' + parts[0];
+                    input.value = formatted;
+                }
             }
         });
     });
