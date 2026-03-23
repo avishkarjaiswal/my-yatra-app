@@ -280,7 +280,7 @@ def register():
     # Check if registration is enabled
     if not settings.is_registration_enabled():
         message = settings.get_setting('registration_closed_message', 
-                                       'Thank you for showing your interest. Registration has been closed. For more information please contact our team.')
+                                       'Thank you for your overwhelming response. All seats are currently booked as of today. Kindly wait until 1st April 2026 for the opening of the second registration slot.')
         return render_template('registration_closed.html', message=message)
     
     if request.method == 'POST':
