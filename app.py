@@ -47,6 +47,38 @@ if database_url.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+def _is_postgres():
+    """Return True if the configured database is PostgreSQL."""
+    return database_url.startswith('postgresql')
+
+def _table_exists(table_name):
+    """Check if a table exists in the database (works for both SQLite and PostgreSQL)."""
+    from sqlalchemy import text as _t
+    if _is_postgres():
+        row = db.session.execute(
+            _t("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public' AND tablename=:n"),
+            {'n': table_name}
+        ).fetchone()
+    else:
+        row = db.session.execute(
+            _t("SELECT name FROM sqlite_master WHERE type='table' AND name=:n"),
+            {'n': table_name}
+        ).fetchone()
+    return row is not None
+
+def _get_all_yatra_table_names():
+    """Return a list of all dynamic yatra table names (works for both SQLite and PostgreSQL)."""
+    from sqlalchemy import text as _t
+    if _is_postgres():
+        rows = db.session.execute(
+            _t("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public' AND tablename LIKE 'yatra_%' AND tablename != 'yatra_details'")
+        ).fetchall()
+    else:
+        rows = db.session.execute(
+            _t("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'yatra_%' AND name != 'yatra_details'")
+        ).fetchall()
+    return [row[0] for row in rows]
+
 
 
 # Razorpay configuration
@@ -74,10 +106,10 @@ with app.app_context():
     # Migration: add is_active column
     try:
         from sqlalchemy import text as _text
-        db.session.execute(_text("ALTER TABLE yatra_details ADD COLUMN is_active BOOLEAN DEFAULT 1"))
+        db.session.execute(_text("ALTER TABLE yatra_details ADD COLUMN is_active BOOLEAN DEFAULT TRUE"))
         db.session.commit()
     except Exception:
-        pass
+        db.session.rollback()
 
     # Migration: add about_image column
     try:
@@ -85,7 +117,7 @@ with app.app_context():
         db.session.execute(_text("ALTER TABLE yatra_details ADD COLUMN about_image VARCHAR(255)"))
         db.session.commit()
     except Exception:
-        pass
+        db.session.rollback()
 
     # Migration: add yatra_message and yatra_link columns
     try:
@@ -94,7 +126,7 @@ with app.app_context():
         db.session.execute(_text("ALTER TABLE yatra_details ADD COLUMN yatra_link VARCHAR(500)"))
         db.session.commit()
     except Exception:
-        pass
+        db.session.rollback()
 
     # Migration: add sort_order column to carousel_images
     try:
@@ -102,7 +134,7 @@ with app.app_context():
         db.session.execute(_text("ALTER TABLE carousel_images ADD COLUMN sort_order INTEGER DEFAULT 0"))
         db.session.commit()
     except Exception:
-        pass
+        db.session.rollback()
 
 
 # Authentication decorator
@@ -126,18 +158,13 @@ def _is_valid_table(table_name):
     This is the single gatekeeper that prevents SQL injection whenever a
     user-supplied name is used to build a raw SQL string.
     """
-    from sqlalchemy import text as _t
     # Only names that start with 'yatra_' and are NOT the schema table itself
     if not isinstance(table_name, str):
         return False
     if not table_name.startswith('yatra_') or table_name == 'yatra_details':
         return False
-    # Confirm the table physically exists in SQLite master
-    row = db.session.execute(
-        _t("SELECT 1 FROM sqlite_master WHERE type='table' AND name=:n"),
-        {'n': table_name}
-    ).fetchone()
-    return row is not None
+    # Confirm the table physically exists
+    return _table_exists(table_name)
 
 def phone_required(f):
     """Decorator that ensures the user has verified their mobile number."""
@@ -587,10 +614,7 @@ def dashboard():
     for yatra in all_yatras:
         tname = sanitize_table_name(yatra.title)
         try:
-            tbl_exists = db.session.execute(
-                _txt(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{tname}'")
-            ).fetchone()
-            if not tbl_exists:
+            if not _table_exists(tname):
                 continue
             # Select relevant fields + passenger_id
             rows = db.session.execute(
@@ -654,10 +678,7 @@ def dashboard():
     for yatra in yatras:
         tname = sanitize_table_name(yatra.title)
         try:
-            tbl_exists = db.session.execute(
-                _txt(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{tname}'")
-            ).fetchone()
-            if not tbl_exists:
+            if not _table_exists(tname):
                 continue
             rows = db.session.execute(
                 _txt(f"SELECT name, hotel_package, travel_package, start_date, end_date, status, razorpay_id, passenger_id FROM {tname} WHERE login_id=:lid"),
@@ -793,9 +814,7 @@ def save_passenger_package():
             from sqlalchemy import text
             tname = sanitize_table_name(yatra.title)
             # Check if table exists
-            exists = db.session.execute(
-                text(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{tname}'")
-            ).fetchone()
+            exists = _table_exists(tname)
             if exists:
                 old_row = db.session.execute(text(f"SELECT status, razorpay_id FROM {tname} WHERE passenger_id=:pid OR (passenger_id IS NULL AND login_id=:lid AND name=:nm)"),
                                              {'pid': p_id, 'lid': session.get('verified_phone'), 'nm': passenger.name}).fetchone()
@@ -949,9 +968,7 @@ def pay_all():
     try:
         from sqlalchemy import text
         tname = sanitize_table_name(yatra.title)
-        exists = db.session.execute(
-            text(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{tname}'")
-        ).fetchone()
+        exists = _table_exists(tname)
         
         if not exists:
             return jsonify({'success': False, 'message': 'Yatra table not found.'})
@@ -1307,14 +1324,10 @@ def sanitize_table_name(title):
 
 def get_dynamic_yatra_tables():
     """Return list of dicts for all dynamic Yatra tables with is_active status."""
-    from sqlalchemy import text
-    result = db.session.execute(
-        text("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'yatra_%' AND name != 'yatra_details'")
-    ).fetchall()
+    table_names = _get_all_yatra_table_names()
     tables = []
     all_yatras = YatraDetails.query.all()
-    for row in result:
-        tname = row[0]
+    for tname in table_names:
         display = tname[6:].replace('_', ' ').title()
         # Match to a YatraDetails record by comparing sanitized title
         matched = next((yd for yd in all_yatras if sanitize_table_name(yd.title) == tname), None)
@@ -1673,28 +1686,52 @@ def admin_manage_yatra():
             # Create a dedicated table for this Yatra
             from sqlalchemy import text
             tname = sanitize_table_name(title)
-            db.session.execute(text(f'''
-                CREATE TABLE IF NOT EXISTS {tname} (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    login_id TEXT,
-                    name TEXT,
-                    year_of_birth INTEGER,
-                    email TEXT,
-                    phone TEXT,
-                    gender TEXT,
-                    city TEXT,
-                    district TEXT,
-                    state TEXT,
-                    hotel_package TEXT,
-                    travel_package TEXT,
-                    start_date TEXT,
-                    end_date TEXT,
-                    status TEXT DEFAULT 'Interest',
-                    razorpay_id TEXT,
-                    passenger_id INTEGER,
-                    created_at TEXT DEFAULT (datetime('now', 'localtime'))
-                )
-            '''))
+            if _is_postgres():
+                db.session.execute(text(f'''
+                    CREATE TABLE IF NOT EXISTS {tname} (
+                        id SERIAL PRIMARY KEY,
+                        login_id TEXT,
+                        name TEXT,
+                        year_of_birth INTEGER,
+                        email TEXT,
+                        phone TEXT,
+                        gender TEXT,
+                        city TEXT,
+                        district TEXT,
+                        state TEXT,
+                        hotel_package TEXT,
+                        travel_package TEXT,
+                        start_date TEXT,
+                        end_date TEXT,
+                        status TEXT DEFAULT 'Interest',
+                        razorpay_id TEXT,
+                        passenger_id INTEGER,
+                        created_at TIMESTAMP DEFAULT NOW()
+                    )
+                '''))
+            else:
+                db.session.execute(text(f'''
+                    CREATE TABLE IF NOT EXISTS {tname} (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        login_id TEXT,
+                        name TEXT,
+                        year_of_birth INTEGER,
+                        email TEXT,
+                        phone TEXT,
+                        gender TEXT,
+                        city TEXT,
+                        district TEXT,
+                        state TEXT,
+                        hotel_package TEXT,
+                        travel_package TEXT,
+                        start_date TEXT,
+                        end_date TEXT,
+                        status TEXT DEFAULT 'Interest',
+                        razorpay_id TEXT,
+                        passenger_id INTEGER,
+                        created_at TEXT DEFAULT (datetime('now', 'localtime'))
+                    )
+                '''))
             db.session.commit()
             
             flash(f'New Yatra "{title}" created successfully with its dedicated table!', 'success')
@@ -1786,8 +1823,7 @@ def admin_edit_yatra(yatra_id):
                 new_tname = sanitize_table_name(title)
                 if old_tname != new_tname:
                     from sqlalchemy import text
-                    exists = db.session.execute(text(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{old_tname}'")).fetchone()
-                    if exists:
+                    if _table_exists(old_tname):
                         db.session.execute(text(f"ALTER TABLE {old_tname} RENAME TO {new_tname}"))
                         db.session.commit()
 
@@ -2310,9 +2346,7 @@ def admin_create_registration():
 
             # ── 2. Insert into Yatra's dynamic table ──
             tname = sanitize_table_name(yatra.title)
-            tbl_exists = db.session.execute(
-                text(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{tname}'")
-            ).fetchone()
+            tbl_exists = _table_exists(tname)
 
             if tbl_exists:
                 # Remove any existing entry for this phone+name combo in this yatra
