@@ -1,0 +1,473 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="py-5 mt-5">
+    <div class="container-fluid px-4 px-lg-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <h2 class="text-white mb-0">📈 Advanced Analytics Dashboard</h2>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-light">
+                    <i class="bi bi-arrow-left"></i> Back to Tables
+                </a>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="card glassmorphism p-3 mb-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-5">
+                    <label for="yatraSelect" class="form-label text-white-50 small mb-1">Select Yatra Data</label>
+                    <select id="yatraSelect" class="form-select bg-dark text-white border-secondary">
+                        <option value="all">All Yatra & Registrations</option>
+                        {% for t in dynamic_yatra_tables %}
+                        <option value="{{ t.table_name }}">{{ t.display }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label for="periodSelect" class="form-label text-white-50 small mb-1">Time Period</label>
+                    <select id="periodSelect" class="form-select bg-dark text-white border-secondary">
+                        <option value="7">Last 7 Days</option>
+                        <option value="30">Last 30 Days</option>
+                        <option value="365">Last 365 Days</option>
+                        <option value="all" selected>All Time</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-warning w-100 fw-bold" id="applyFiltersBtn">
+                        <i class="bi bi-funnel-fill"></i> Analyze Filter
+                    </button>
+                    <!-- Loading Spinner (hidden by default) -->
+                    <div id="loadingSpinner" class="spinner-border text-warning ms-2" role="status" style="display: none;">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="row g-4 mb-4" id="statsCards" style="display: none;">
+            <div class="col-md-3">
+                <div class="card glassmorphism p-3 text-center border-left-warning">
+                    <h6 class="text-white-50 text-uppercase mb-2">Total Registrations</h6>
+                    <h2 class="text-white mb-0" id="statTotalRegistrations">0</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card glassmorphism p-3 text-center border-left-success">
+                    <h6 class="text-white-50 text-uppercase mb-2">Total Paid</h6>
+                    <h2 class="text-success mb-0" id="statPaid">0</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card glassmorphism p-3 text-center border-left-info">
+                    <h6 class="text-white-50 text-uppercase mb-2">Packages Opted</h6>
+                    <h2 class="text-info mb-0" id="statPackages">0</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card glassmorphism p-3 text-center border-left-primary">
+                    <h6 class="text-white-50 text-uppercase mb-2">Avg. Participants/Day</h6>
+                    <h2 class="text-primary mb-0" id="statAvgPerDay">0</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Area -->
+        <div class="row g-4 d-none" id="chartsRow">
+            <!-- Timeline Chart -->
+            <div class="col-12">
+                <div class="card glassmorphism p-4 h-100">
+                    <h5 class="text-white mb-3"><i class="bi bi-graph-up text-warning"></i> Registration Timeline</h5>
+                    <div style="height: 350px;">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Yatra Distribution Chart (only shown if "all" is selected) -->
+            <div class="col-lg-6" id="yatraDistContainer">
+                <div class="card glassmorphism p-4 h-100">
+                    <h5 class="text-white mb-3"><i class="bi bi-pie-chart text-info"></i> Yatra Popularity</h5>
+                    <div style="height: 300px; display: flex; justify-content: center;">
+                        <canvas id="yatraDistChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Status -->
+            <div class="col-lg-6">
+                <div class="card glassmorphism p-4 h-100">
+                    <h5 class="text-white mb-3"><i class="bi bi-wallet2 text-success"></i> Registration Status</h5>
+                    <div style="height: 300px; display: flex; justify-content: center;">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demographics (Gender) -->
+            <div class="col-md-4">
+                <div class="card glassmorphism p-4 h-100">
+                    <h5 class="text-white mb-3"><i class="bi bi-gender-ambiguous text-primary"></i> Gender Breakdown</h5>
+                    <div style="height: 250px; display: flex; justify-content: center;">
+                        <canvas id="genderChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demographics (Age) -->
+            <div class="col-md-8">
+                <div class="card glassmorphism p-4 h-100">
+                    <h5 class="text-white mb-3"><i class="bi bi-people text-danger"></i> Age Distribution</h5>
+                    <div style="height: 250px;">
+                        <canvas id="ageChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Packages Selected: Hotel vs Travel -->
+            <div class="col-md-6">
+                <div class="card glassmorphism p-4 h-100">
+                    <h5 class="text-white mb-3"><i class="bi bi-building text-warning"></i> Hotel Category Preferences</h5>
+                    <div style="height: 250px;">
+                        <canvas id="hotelChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card glassmorphism p-4 h-100">
+                    <h5 class="text-white mb-3"><i class="bi bi-car-front text-info"></i> Travel Package Preferences</h5>
+                    <div style="height: 250px;">
+                        <canvas id="travelChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    .border-left-warning { border-left: 4px solid #ffc107; }
+    .border-left-success { border-left: 4px solid #198754; }
+    .border-left-info { border-left: 4px solid #0dcaf0; }
+    .border-left-primary { border-left: 4px solid #0d6efd; }
+    
+    .glassmorphism {
+        background: rgba(26, 26, 46, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Chart instances
+    let timelineChart, yatraDistChart, statusChart, genderChart, ageChart, hotelChart, travelChart;
+
+    // Chart default config for dark mode
+    Chart.defaults.color = 'rgba(255, 255, 255, 0.7)';
+    Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+    const yatraSelect = document.getElementById('yatraSelect');
+    const periodSelect = document.getElementById('periodSelect');
+    const chartsRow = document.getElementById('chartsRow');
+    const statsCards = document.getElementById('statsCards');
+    const yatraDistContainer = document.getElementById('yatraDistContainer');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+    applyFiltersBtn.addEventListener('click', fetchData);
+
+    fetchData(); // Initial load
+
+    function fetchData() {
+        const table = yatraSelect.value;
+        const period = periodSelect.value;
+        const url = `{{ url_for('admin_analytics_data') }}?table=${table}&period=${period}`;
+
+        loadingSpinner.style.display = 'inline-block';
+        applyFiltersBtn.disabled = true;
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                loadingSpinner.style.display = 'none';
+                applyFiltersBtn.disabled = false;
+                
+                if (data.success) {
+                    chartsRow.classList.remove('d-none');
+                    statsCards.style.display = 'flex';
+                    renderDash(data.data, table);
+                } else {
+                    alert('Error loading data');
+                }
+            })
+            .catch(error => {
+                loadingSpinner.style.display = 'none';
+                applyFiltersBtn.disabled = false;
+                console.error("Error fetching analytics data:", error);
+            });
+    }
+
+    function renderDash(data, tableSelected) {
+        updateStats(data);
+        renderTimelineChart(data.chart_timeline);
+        renderStatusChart(data.status);
+        renderGenderChart(data.gender);
+        renderAgeChart(data.age_groups);
+        renderPackageCharts(data.packages);
+
+        if (tableSelected === 'all') {
+            yatraDistContainer.classList.remove('d-none');
+            renderYatraDistChart(data.yatra_dist);
+        } else {
+            yatraDistContainer.classList.add('d-none');
+            if(yatraDistChart) yatraDistChart.destroy();
+        }
+    }
+
+    function updateStats(data) {
+        // Compute total timeline registrations
+        const totalRegs = data.chart_timeline.values.reduce((a, b) => a + b, 0);
+        document.getElementById('statTotalRegistrations').textContent = totalRegs;
+
+        document.getElementById('statPaid').textContent = data.status['Paid'] || 0;
+        
+        let totalPackages = 0;
+        Object.values(data.packages.hotel).forEach(v => totalPackages += v);
+        document.getElementById('statPackages').textContent = totalPackages;
+
+        const daysAssessed = data.chart_timeline.values.length || 1;
+        document.getElementById('statAvgPerDay').textContent = (totalRegs / daysAssessed).toFixed(1);
+    }
+
+    function renderTimelineChart(timeline) {
+        const ctx = document.getElementById('timelineChart').getContext('2d');
+        if (timelineChart) timelineChart.destroy();
+        
+        // Ensure there's a gradient
+        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(255, 193, 7, 0.5)'); // warning color
+        gradient.addColorStop(1, 'rgba(255, 193, 7, 0.0)');
+
+        timelineChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: timeline.labels,
+                datasets: [{
+                    label: 'Registrations',
+                    data: timeline.values,
+                    borderColor: '#ffc107',
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#ffc107',
+                    pointBorderColor: '#fff',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderYatraDistChart(distMap) {
+        const ctx = document.getElementById('yatraDistChart').getContext('2d');
+        if (yatraDistChart) yatraDistChart.destroy();
+        
+        const labels = Object.keys(distMap);
+        const values = Object.values(distMap);
+
+        yatraDistChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: ['#0dcaf0', '#0d6efd', '#6610f2', '#ffc107', '#198754', '#dc3545', '#fd7e14', '#20c997'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: { position: 'right' }
+                }
+            }
+        });
+    }
+
+    function renderStatusChart(statusMap) {
+        const ctx = document.getElementById('statusChart').getContext('2d');
+        if (statusChart) statusChart.destroy();
+        
+        const labels = ['Paid', 'Pending', 'Interest', 'Failed'];
+        const values = [
+            statusMap['Paid'] || 0,
+            statusMap['Pending'] || 0,
+            statusMap['Interest'] || 0,
+            statusMap['Failed'] || 0
+        ];
+
+        statusChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: ['#198754', '#ffc107', '#6f42c1', '#dc3545'],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right' } }
+            }
+        });
+    }
+
+    function renderGenderChart(genderMap) {
+        const ctx = document.getElementById('genderChart').getContext('2d');
+        if (genderChart) genderChart.destroy();
+
+        genderChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Male', 'Female', 'Other'],
+                datasets: [{
+                    data: [genderMap['Male'] || 0, genderMap['Female'] || 0, genderMap['Other'] || 0],
+                    backgroundColor: ['#0d6efd', '#e83e8c', '#6c757d'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+
+    function renderAgeChart(ageMap) {
+        const ctx = document.getElementById('ageChart').getContext('2d');
+        if (ageChart) ageChart.destroy();
+
+        const labels = Object.keys(ageMap);
+        const data = Object.values(ageMap);
+
+        ageChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Registrations',
+                    data: data,
+                    backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                    borderColor: '#dc3545',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                }
+            }
+        });
+    }
+
+    function renderPackageCharts(packagesMap) {
+        // Hotel Chart
+        const hCtx = document.getElementById('hotelChart').getContext('2d');
+        if (hotelChart) hotelChart.destroy();
+        
+        let hLabels = Object.keys(packagesMap.hotel);
+        let hData = Object.values(packagesMap.hotel);
+
+        hotelChart = new Chart(hCtx, {
+            type: 'bar',
+            data: {
+                labels: hLabels,
+                datasets: [{
+                    label: 'Count',
+                    data: hData,
+                    backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                    borderWidth: 0,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true, ticks: { precision: 0 } }, y: { grid: { display: false } } }
+            }
+        });
+
+        // Travel Chart
+        const tCtx = document.getElementById('travelChart').getContext('2d');
+        if (travelChart) travelChart.destroy();
+
+        let tLabels = Object.keys(packagesMap.travel);
+        let tData = Object.values(packagesMap.travel);
+
+        travelChart = new Chart(tCtx, {
+            type: 'bar',
+            data: {
+                labels: tLabels,
+                datasets: [{
+                    label: 'Count',
+                    data: tData,
+                    backgroundColor: 'rgba(13, 202, 240, 0.7)',
+                    borderWidth: 0,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true, ticks: { precision: 0 } }, y: { grid: { display: false } } }
+            }
+        });
+    }
+
+});
+</script>
+{% endblock %}

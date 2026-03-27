@@ -1615,6 +1615,123 @@ def admin_dashboard():
                          dynamic_yatra_tables=dynamic_yatra_tables,
                          admin_tab_token=session.get('admin_tab_token', ''))
 
+@app.route('/admin/analytics')
+@login_required
+def admin_analytics():
+    """Admin analytics dashboard"""
+    dynamic_yatra_tables = get_dynamic_yatra_tables()
+    return render_template('admin_analytics.html',
+                           dynamic_yatra_tables=dynamic_yatra_tables,
+                           admin_tab_token=session.get('admin_tab_token', ''))
+
+@app.route('/admin/api/analytics-data')
+@login_required
+def admin_analytics_data():
+    """API for fetching analytics data asynchronously"""
+    table_type = request.args.get('table', 'all')
+    period = request.args.get('period', 'all')
+    
+    from sqlalchemy import text
+    from datetime import datetime, timedelta
+    
+    tables_to_query = []
+    if table_type == 'all':
+        tables_to_query = [t for t in _get_all_yatra_table_names() if _is_valid_table(t)]
+    else:
+        if _is_valid_table(table_type):
+            tables_to_query = [table_type]
+            
+    date_filter = ""
+    params = {}
+    if period in ['7', '30', '365']:
+        cutoff_date = datetime.now() - timedelta(days=int(period))
+        if _is_postgres():
+            date_filter = " AND created_at >= :cutoff"
+        else:
+            date_filter = " AND created_at >= :cutoff"
+        params['cutoff'] = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
+
+    data = {
+        'timeline': {},
+        'gender': {'Male': 0, 'Female': 0, 'Other': 0},
+        'status': {'Paid': 0, 'Pending': 0, 'Interest': 0, 'Failed': 0},
+        'age_groups': {'0-18': 0, '19-35': 0, '36-50': 0, '51-65': 0, '65+': 0},
+        'yatra_dist': {},
+        'packages': {'hotel': {}, 'travel': {}}
+    }
+    
+    current_year = datetime.now().year
+    
+    for tname in tables_to_query:
+        import string
+        display_name = string.capwords(tname[6:].replace('_', ' '))
+        data['yatra_dist'][display_name] = 0
+        
+        query = f"SELECT created_at, gender, status, year_of_birth, hotel_package, travel_package FROM {tname} WHERE 1=1 {date_filter}"
+        rows = db.session.execute(text(query), params).fetchall()
+        
+        for row in rows:
+            created_at, gender, status, yob, hotel_pkg, travel_pkg = row
+            
+            # Timeline
+            if created_at:
+                try:
+                    if isinstance(created_at, str):
+                        dt = datetime.strptime(created_at[:10], '%Y-%m-%d')
+                    else:
+                        dt = created_at
+                    d_str = dt.strftime('%Y-%m-%d')
+                    data['timeline'][d_str] = data['timeline'].get(d_str, 0) + 1
+                except:
+                    pass
+            
+            # Gender
+            g = 'Other'
+            if gender:
+                g_lower = gender.lower()
+                if g_lower == 'male' or g_lower == 'm': g = 'Male'
+                elif g_lower == 'female' or g_lower == 'f': g = 'Female'
+            data['gender'][g] = data['gender'].get(g, 0) + 1
+            
+            # Status
+            s = 'Interest'
+            if status:
+                s_lower = status.lower()
+                if s_lower == 'paid': s = 'Paid'
+                elif s_lower == 'pending': s = 'Pending'
+                elif s_lower == 'failed': s = 'Failed'
+            data['status'][s] = data['status'].get(s, 0) + 1
+            
+            # Age
+            if yob:
+                try:
+                    age = current_year - int(yob)
+                    if age <= 18: data['age_groups']['0-18'] += 1
+                    elif age <= 35: data['age_groups']['19-35'] += 1
+                    elif age <= 50: data['age_groups']['36-50'] += 1
+                    elif age <= 65: data['age_groups']['51-65'] += 1
+                    else: data['age_groups']['65+'] += 1
+                except:
+                    pass
+                    
+            # Packages
+            if hotel_pkg and hotel_pkg.strip() and hotel_pkg.lower() != 'none':
+                hp = hotel_pkg.strip()
+                data['packages']['hotel'][hp] = data['packages']['hotel'].get(hp, 0) + 1
+            if travel_pkg and travel_pkg.strip() and travel_pkg.lower() != 'none':
+                tp = travel_pkg.strip()
+                data['packages']['travel'][tp] = data['packages']['travel'].get(tp, 0) + 1
+            
+            data['yatra_dist'][display_name] += 1
+
+    sorted_dates = sorted(data['timeline'].keys())
+    data['chart_timeline'] = {
+        'labels': sorted_dates,
+        'values': [data['timeline'][d] for d in sorted_dates]
+    }
+    
+    return jsonify({'success': True, 'data': data})
+
 @app.route('/admin/manage-yatra', methods=['GET', 'POST'])
 @login_required
 def admin_manage_yatra():
