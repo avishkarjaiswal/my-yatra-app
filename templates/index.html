@@ -5,6 +5,14 @@
 <section class="p-0">
     <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="4000">
         <div class="carousel-inner hero-carousel-responsive">
+            {% if carousel_images and carousel_images|length > 0 %}
+            {% for img in carousel_images %}
+            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                <img src="{{ url_for('static', filename=img.image_path) }}" class="d-block w-100 carousel-img"
+                    alt="Carousel Slide {{ loop.index }}">
+            </div>
+            {% endfor %}
+            {% else %}
             <div class="carousel-item active">
                 <img src="{{ url_for('static', filename='images/dwarka1.png') }}" class="d-block w-100 carousel-img"
                     alt="Dwarka Temple">
@@ -21,6 +29,7 @@
                 <img src="{{ url_for('static', filename='images/dwarka5.png') }}" class="d-block w-100 carousel-img"
                     alt="Happy Pilgrims">
             </div>
+            {% endif %}
         </div>
         <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -39,10 +48,10 @@
         <div class="row justify-content-center">
             <div class="col-lg-8 text-center">
                 <div class="cta-content">
-                    <h2 class="cta-title mb-3">Join us for the Divine Dwarka Yatra!</h2>
-                    <p class="cta-subtitle mb-4">Limited Seats Available - Secure Your Spot for the Sacred Dwarka Yatra!
+                    <h2 class="cta-title mb-3">Join us for the Divine Upcoming Yatras!</h2>
+                    <p class="cta-subtitle mb-4">Limited Seats Available - Secure Your Spot for the Sacred Dham Yatras!
                     </p>
-                    <a href="{{ url_for('register') }}" class="btn-register-now">
+                    <a href="{{ url_for('verify_phone') }}" class="btn-register-now">
                         <span class="btn-text">
                             Register Now
                             <i class="bi bi-arrow-right-circle-fill ms-2"></i>
@@ -398,26 +407,40 @@
 </style>
 
 <!-- YouTube Video Section -->
+{% if youtube_links and youtube_links|length > 0 %}
 <section class="py-5 bg-black bg-opacity-25">
     <div class="container">
-        <h2 class="text-center mb-4">Experience Dwarka Yatra</h2>
+        <h2 class="text-center mb-4">Our Past Yatra&#39;s Glimpse</h2>
         <div class="row justify-content-center">
+            {% set num_links = youtube_links|length %}
+            {% for link in youtube_links %}
+
+            {% if num_links == 1 %}
             <div class="col-lg-8">
-                <div class="ratio ratio-16x9 rounded-3 overflow-hidden shadow-lg">
-                    <iframe src="https://www.youtube.com/embed/zTeCw1twHRY" title="Dwarka Yatra Video" frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowfullscreen>
-                    </iframe>
+                {% elif num_links == 2 %}
+                <div class="col-lg-6 col-md-6 mb-4">
+                    {% else %}
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        {% endif %}
+
+                        <div class="ratio ratio-16x9 rounded-3 overflow-hidden shadow-lg h-100"
+                            style="border: 2px solid rgba(255, 193, 7, 0.4);">
+                            <iframe src="{{ link }}" title="Dwarka Yatra Video" frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowfullscreen style="width: 100%; height: 100%;">
+                            </iframe>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
-        </div>
-    </div>
 </section>
+{% endif %}
 
 <!-- Features / Info - Always Expanded -->
 <section class="py-5">
     <div class="container text-center">
-        <h2 class="mb-5">Experience the Divine</h2>
+        <h2 class="mb-5">Experience the Divine Moments</h2>
         <div class="row g-4">
             <!-- Spiritual Guides Card -->
             <div class="col-md-4">
@@ -428,19 +451,19 @@
                         <p class="mb-0">Prabhuji will reveal the glories of the places we visit.</p>
                     </div>
                     <div class="feature-detail-merged">
-                        <img src="{{ url_for('static', filename='images/channels4_profile.jpg') }}" class="card-img-top"
+                        <img src="{{ url_for('static', filename='images/prabhuji.jpg') }}" class="card-img-top"
                             alt="Spiritual Guides"
                             onerror="this.src='https://images.unsplash.com/photo-1604881991720-f91add269bed?w=400&h=250&fit=crop'">
                         <div class="card-body p-4">
                             <h5 class="card-title text-warning mb-3">HG Govind Mohan Prabhuji</h5>
-                            <p class="card-text">HG Govind Mohan Prabhuji is a respected preacher associated with
+                            <p class="card-text mb-3">HG Govind Mohan Prabhuji is a respected preacher associated with
                                 International Society for Krishna Consciousness (ISKCON).</p>
-                            <p class="card-text">He is known for his deep scriptural knowledge, heartfelt kirtans, and
-                                inspiring lectures
-                                that awaken devotion to Lord Krishna.</p>
-                            <p class="card-text">Now, he is organizing a spiritually enriching Dwarka Yatra to reveal
-                                the divine glories
-                                of Dwarka Dhama, the sacred kingdom of Lord Krishna.</p>
+                            <p class="card-text mb-3">He is known for his deep scriptural knowledge, heartfelt kirtans,
+                                and
+                                inspiring lectures that awaken devotion to Lord Krishna.</p>
+                            <p class="card-text mb-3">Now, he is organizing a spiritually enriching Dwarka Yatra to
+                                reveal
+                                the divine glories of Dwarka Dhama, the sacred kingdom of Lord Krishna.</p>
                         </div>
                     </div>
                 </div>
@@ -461,65 +484,115 @@
                         <div class="card-body p-4">
                             <h5 class="card-title text-warning mb-3">Comfortable Accommodation</h5>
                             <p class="card-text mb-3">We arrange comfortable and hygienic accommodations near the temple
-                                premises to ensure a peaceful and relaxing stay during your yatra.</p>
+                                premises to ensure a peaceful and relaxing stay during your yatra.
+                                <br> Prasadam will be provided by us. I will be included in your hotel package.
+                            </p>
 
                             <div class="food-highlight mb-4 p-3 rounded"
                                 style="background: rgba(255, 193, 7, 0.1); border-left: 3px solid #ffc107;">
                                 <p class="card-text mb-0">
                                     <i class="bi bi-stars text-warning"></i> <strong>Premium Pure Vegetarian
-                                        Food</strong> will be provided by us,
-                                    prepared with utmost hygiene and devotion to maintain the sanctity of your spiritual
-                                    experience.
+                                        Food</strong> will be provided by us, prepared with utmost hygiene and devotion
+                                    to maintain the sanctity of your spiritual experience.
                                 </p>
-                            </div>
-
-                            <div class="package-pricing">
-                                <h5 class="text-warning mb-3"><i class="bi bi-tag-fill"></i> Package Options:</h5>
-                                <div class="pricing-list">
-                                    <div class="pricing-item mb-2">
-                                        <span class="package-name">Basic:</span>
-                                        <span class="package-price">Coming Soon</span>
-                                    </div>
-                                    <div class="pricing-item mb-2">
-                                        <span class="package-name">Standard:</span>
-                                        <span class="package-price">Coming Soon</span>
-                                    </div>
-                                    <div class="pricing-item">
-                                        <span class="package-name">Premium:</span>
-                                        <span class="package-price">Coming Soon</span>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Itinerary Card -->
+            <!-- Kirtan Card -->
             <div class="col-md-4">
                 <div class="feature-card-merged border border-warning rounded glassmorphism overflow-hidden">
                     <div class="feature-header-merged p-4">
-                        <i class="bi bi-map fs-1 mb-3 text-warning"></i>
-                        <h3>Itinerary</h3>
-                        <p class="mb-0">Well-planned journey schedule for your divine yatra.</p>
+                        <i class="bi bi-music-note-beamed fs-1 mb-3 text-warning"></i>
+                        <h3>Kirtan</h3>
+                        <p class="mb-0">Soul-stirring chanting of the Holy Names.</p>
                     </div>
                     <div class="feature-detail-merged">
-                        <img src="{{ url_for('static', filename='images/unnamed.webp') }}" class="card-img-top"
-                            alt="Itinerary"
-                            onerror="this.src='https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&h=250&fit=crop'">
+                        <img src="{{ url_for('static', filename='images/Kirtan.png') }}" class="card-img-top"
+                            alt="Kirtan">
                         <div class="card-body p-4">
-                            <h5 class="card-title text-warning mb-3">Journey Schedule</h5>
-                            <p class="card-text mb-3">Experience a carefully planned spiritual journey covering all
-                                major sacred sites and temples.</p>
-                            <p class="card-text mb-3">Our detailed itinerary includes temple visits, spiritual
-                                discourses, kirtans, and sufficient rest periods, ensuring a balanced and enriching
-                                yatra experience.</p>
-                            <p class="card-text">With well-planned schedules and expert guidance, you can focus entirely
-                                on your spiritual growth and divine experiences.</p>
+                            <h5 class="card-title text-warning mb-3">Ecstatic Kirtan</h5>
+                            <p class="card-text mb-3">Engage in melodious and blissful Sankirtan, singing the holy names
+                                of the Lord accompanied by traditional instruments.</p>
+                            <p class="card-text mb-3">It is the supreme process of awakening our dormant love
+                                for Krishna in this age.</p>
+                            <p class="card-text mb-3">It is the supreme process of awakening our dormant love
+                                In this sacred vibration, the restless mind finds peace, the heavy heart becomes light,
+                                and the soul awakens to its true nature. Sankirtan is not just music—it is a spiritual
+                                journey where every participant becomes immersed in divine joy and unity.</p>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Prasadam Card -->
+            <div class="col-md-4">
+                <div class="feature-card-merged border border-warning rounded glassmorphism overflow-hidden">
+                    <div class="feature-header-merged p-4">
+                        <i class="bi bi-basket-fill fs-1 mb-3 text-warning"></i>
+                        <h3>Prasadam</h3>
+                        <p class="mb-0">Sanctified food offered to the Lord.</p>
+                    </div>
+                    <div class="feature-detail-merged">
+                        <img src="{{ url_for('static', filename='images/Prasadam.jpg') }}" class="card-img-top"
+                            alt="Prasadam">
+                        <div class="card-body p-4">
+                            <h5 class="card-title text-warning mb-3">Krishna Prasadam</h5>
+                            <p class="card-text mb-3">Enjoy sumptuous and purely vegetarian meals that have been
+                                lovingly cooked and offered to the Deities first.</p>
+                            <p class="card-text mb-3">Eating Prasadam purifies our existence and helps us
+                                advance spiritually.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drama Card -->
+            <div class="col-md-4">
+                <div class="feature-card-merged border border-warning rounded glassmorphism overflow-hidden">
+                    <div class="feature-header-merged p-4">
+                        <i class="bi bi-people-fill fs-1 mb-3 text-warning"></i>
+                        <h3>Drama</h3>
+                        <p class="mb-0">Enactments of Lord Krishna's divine pastimes.</p>
+                    </div>
+                    <div class="feature-detail-merged">
+                        <img src="{{ url_for('static', filename='images/Drama.png') }}" class="card-img-top"
+                            alt="Drama">
+                        <div class="card-body p-4">
+                            <h5 class="card-title text-warning mb-3">Spiritual Dramas</h5>
+                            <p class="card-text mb-3">Witness captivating theatrical performances bringing the timeless
+                                pastimes of the Lord and His devotees to life.</p>
+                            <p class="card-text mb-3">A powerful way to absorb our minds in remembering the
+                                Lord.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lecture Card -->
+            <div class="col-md-4">
+                <div class="feature-card-merged border border-warning rounded glassmorphism overflow-hidden">
+                    <div class="feature-header-merged p-4">
+                        <i class="bi bi-book fs-1 mb-3 text-warning"></i>
+                        <h3>Lecture</h3>
+                        <p class="mb-0">Enlightening discourses on Vedic scriptures.</p>
+                    </div>
+                    <div class="feature-detail-merged">
+                        <img src="{{ url_for('static', filename='images/Katha.jpg') }}" class="card-img-top"
+                            alt="Lecture">
+                        <div class="card-body p-4">
+                            <h5 class="card-title text-warning mb-3">Hari Katha</h5>
+                            <p class="card-text mb-3">Listen to profound spiritual teachings based on the Bhagavad Gita
+                                and Srimad Bhagavatam delivered by senior Vaishnavas.</p>
+                            <p class="card-text mb-3">Hearing (Sravanam) is the fundamental step in the
+                                practice of Bhakti Yoga.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </section>
@@ -713,70 +786,7 @@
 </style>
 </section>
 
-<style>
-    /* Dwarka Main Image Styling */
-    .dwarka-main-image {
-        max-width: 100%;
-        height: auto;
-        min-height: 400px;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
 
-    .dwarka-main-image:hover {
-        transform: scale(1.03);
-    }
-
-    @media (max-width: 768px) {
-        .dwarka-main-image {
-            min-height: 250px;
-        }
-    }
-</style>
-
-<!-- About Dwarka Section -->
-<section id="about" class="py-5 bg-black bg-opacity-25">
-    <div class="container">
-        <h2 class="text-left mb-5"> About Dwarka</h2>
-        <div class="row align-items-center">
-            <!-- Left side - Image -->
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <div class="text-center">
-                    <img src="{{ url_for('static', filename='images/Dwarka index.jpg') }}"
-                        class="img-fluid rounded-3 shadow-lg dwarka-main-image" alt="Dwarka Index">
-                </div>
-            </div>
-
-            <!-- Right side - Text Content -->
-            <div class="col-lg-6">
-                <div class="glassmorphism p-5 rounded-3">
-                    <p class="text-white lead mb-4 text-justify" style="line-height: 1.8;">
-                        Dwarka is one of the most sacred pilgrimage destinations in India, revered as the ancient
-                        kingdom of Lord Shri Krishna. Situated on the western coast of Gujarat, Dwarka is counted among
-                        the <strong>Char Dham</strong> and <strong>Sapta Puri</strong>, making it a vital center of
-                        Hindu spirituality.
-                    </p>
-                    <p class="text-white lead mb-4 text-justify" style="line-height: 1.8;">
-                        According to the scriptures, Dwarka was established by Lord Krishna after leaving Mathura, and
-                        it symbolizes divine governance, devotion, and dharma. The magnificent <strong>Dwarkadhish
-                            Temple</strong>, standing on the banks of the Gomti River, draws millions of devotees who
-                        come to seek the blessings of Shri Krishna.
-                    </p>
-                    <p class="text-white lead mb-4 text-justify" style="line-height: 1.8;">
-                        A yatra to Dwarka is not just a journey to a holy city, but a spiritual experience that connects
-                        devotees with Krishna's leelas, the teachings of the Bhagavad Gita, and the timeless essence of
-                        bhakti.
-                    </p>
-                    <div class="text-center mt-5">
-                        <a href="{{ url_for('register') }}" class="btn btn-warning btn-lg px-5 py-3">
-                            <i class="bi bi-calendar-check-fill"></i> Begin Dham Yatra from here!
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
 <!-- Contact Us Footer Section -->
 <section id="contact" class="contact-footer-section py-4">
     <div class="container text-center">
@@ -790,7 +800,8 @@
             </a>
             <a href="tel:+917020391800" class="contact-footer-item">
                 <div class="icon-circle"><i class="bi bi-telephone-fill"></i></div>
-                <span class="fw-semibold">+91 70203 91800 <small class="text-white-50 ms-1 fw-normal">(Amal Bhakt Das)</small></span>
+                <span class="fw-semibold">+91 70203 91800 <small class="text-white-50 ms-1 fw-normal">(Amal Bhakt
+                        Das)</small></span>
             </a>
         </div>
     </div>
@@ -866,4 +877,95 @@
         }
     });
 </script>
+<!-- Floating Register Now Widget -->
+<a href="{{ url_for('verify_phone') }}" class="btn-register-floating" title="Register Now">
+    <span class="floating-icon"><i class="bi bi-person-plus-fill"></i></span>
+    <span class="floating-text">Register Now</span>
+    <span class="floating-sparkle">✨</span>
+</a>
+
+<style>
+    /* Floating Register Button Styling */
+    .btn-register-floating {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 50%, #ffc107 100%);
+        background-size: 200% auto;
+        color: #000;
+        text-decoration: none;
+        border-radius: 50px;
+        font-weight: 700;
+        box-shadow: 0 10px 25px rgba(255, 193, 7, 0.4), 0 0 15px rgba(255, 193, 7, 0.2);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        animation: pulseFloating 2s ease-in-out infinite;
+    }
+
+    @keyframes pulseFloating {
+
+        0%,
+        100% {
+            transform: scale(1);
+            box-shadow: 0 10px 25px rgba(255, 193, 7, 0.4);
+        }
+
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 15px 35px rgba(255, 193, 7, 0.6);
+        }
+    }
+
+    .btn-register-floating:hover {
+        transform: translateY(-5px) scale(1.1);
+        background-position: 100% center;
+        box-shadow: 0 20px 40px rgba(255, 193, 7, 0.5);
+        color: #000;
+        animation: none;
+    }
+
+    .floating-icon {
+        font-size: 1.4rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .floating-text {
+        font-size: 1.1rem;
+        white-space: nowrap;
+    }
+
+    .floating-sparkle {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        font-size: 1.2rem;
+        animation: sparkle 1.5s ease-in-out infinite;
+    }
+
+    /* Hide text on small screens to save space */
+    @media (max-width: 576px) {
+        .btn-register-floating {
+            bottom: 20px;
+            right: 20px;
+            padding: 12px;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            justify-content: center;
+        }
+
+        .floating-text {
+            display: none;
+        }
+
+        .btn-register-floating:hover {
+            transform: scale(1.2);
+        }
+    }
+</style>
 {% endblock %}

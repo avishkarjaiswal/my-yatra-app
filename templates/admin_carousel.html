@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+
+{% block title %}Carousel Manager - Admin{% endblock %}
+
+{% block content %}
+<section class="py-5 mt-5">
+    <div class="container">
+
+        <!-- Header -->
+        <div class="d-flex align-items-center justify-content-between mb-5 flex-wrap gap-3">
+            <div>
+                <h1 class="display-5 fw-bold text-white mb-1">
+                    <i class="bi bi-images text-warning me-2"></i> Carousel Manager
+                </h1>
+                <p class="text-white-50 mb-0">Upload, preview and manage homepage sliding images</p>
+            </div>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-warning">
+                <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else ('warning' if category == 'warning' else 'success') }} alert-dismissible fade show mb-4"
+            role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="catalog-section glassmorphism rounded-4 p-4 mb-5 shadow-lg">
+            
+            <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="folder-icon-circle" style="background: rgba(255,193,7,0.1); border: 2px solid rgba(255,193,7,0.3);">
+                        <i class="bi bi-collection-play-fill text-warning" style="font-size: 1.6rem;"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-white mb-0 fw-bold">Live Carousel</h4>
+                        <span class="text-white-50 small">{{ images|length }} active image{{ 's' if images|length != 1 else '' }}</span>
+                    </div>
+                </div>
+                <a href="{{ url_for('index') }}" target="_blank" class="btn btn-sm btn-outline-light">
+                    <i class="bi bi-eye me-1"></i> Preview Homepage
+                </a>
+            </div>
+
+            <!-- Upload Zone -->
+            <form action="{{ url_for('admin_carousel_upload') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
+                <div class="upload-zone mb-4" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                    <i class="bi bi-cloud-arrow-up-fill upload-icon text-warning" style="font-size: 2.8rem;"></i>
+                    <p class="mb-1 text-white fw-semibold mt-2">Drag & drop photos here</p>
+                    <p class="text-white-50 small mb-2">or click to browse</p>
+                    <small class="text-white-50 d-block mb-3">Supported: JPG, PNG, WEBP, GIF · Multiple files allowed</small>
+                    
+                    <input type="file" id="fileInput" name="photos" multiple accept=".jpg,.jpeg,.png,.webp,.gif" style="display:none" onchange="previewSelection(this)">
+                    
+                    <div id="previewContainer" class="d-flex flex-wrap gap-2 justify-content-center"></div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mb-4" id="actionButtons" style="display:none!important;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="clearSelection()">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-warning btn-sm fw-bold">
+                        <i class="bi bi-upload me-1"></i> Upload Selected Images
+                    </button>
+                </div>
+            </form>
+
+            <hr class="border-secondary my-4">
+
+            <!-- Grid -->
+            {% if images %}
+            <div class="row g-3" id="carouselGrid">
+                {% for img in images %}
+                <div class="col-6 col-sm-4 col-lg-3 col-xl-2 sortable-card" id="photoWrap-{{ img.id }}" data-id="{{ img.id }}">
+                    <div class="photo-card position-relative overflow-hidden rounded-3 shadow-sm" style="border: 1px solid rgba(255,255,255,0.1); padding-top:100%; cursor: grab;">
+                        <img src="{{ url_for('static', filename=img.image_path) }}" class="position-absolute top-0 start-0 w-100 h-100" style="object-fit:cover; transition: 0.3s;" alt="Carousel Image">
+                        
+                        <!-- Overlay -->
+                        <div class="position-absolute inset-0 w-100 h-100 top-0 start-0 d-flex flex-column align-items-center justify-content-center photo-overlay" style="background: rgba(0,0,0,0.65); opacity:0; transition:0.3s;">
+                            <button type="button" class="btn btn-danger btn-sm mt-2 shadow delete-carousel-btn" data-image-id="{{ img.id }}">
+                                <i class="bi bi-trash3-fill me-1"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5 opacity-50">
+                <i class="bi bi-images display-1 mb-3 text-secondary border"></i>
+                <p class="text-white">Your carousel is completely empty.</p>
+                <p class="small text-white-50">Upload some images above to showcase them on the homepage.</p>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</section>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger" style="background:#1a1a2e; color:white;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Delete Carousel Image</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to permanently delete this image from the live carousel?</p>
+                <p class="small text-white-50 mb-0">This file will be completely erased from the server.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn"><i class="bi bi-trash my-1"></i> Delete Permanent</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .catalog-section { border: 1px solid rgba(255, 193, 7, 0.15); }
+    .folder-icon-circle { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+    
+    .upload-zone { border: 2px dashed rgba(255, 193, 7, 0.4); border-radius: 14px; padding: 2rem 1.5rem; text-align: center; cursor: pointer; transition: 0.3s; background: rgba(255, 193, 7, 0.03); }
+    .upload-zone:hover { border-color: #ffc107; background: rgba(255, 193, 7, 0.08); }
+    
+    .photo-card:hover img { filter: brightness(0.5) scale(1.05); }
+    .photo-card:hover .photo-overlay { opacity: 1 !important; }
+    
+    .preview-chip { background:rgba(255,193,7,0.15); border:1px solid rgba(255,193,7,0.4); color:white; border-radius:20px; padding: 4px 12px; font-size:0.8rem; }
+    
+    .deleting { opacity:0.3; pointer-events:none; }
+    
+    .sortable-ghost { opacity: 0.4; background-color: #f4f4f4; border: 2px dashed #ffc107 !important; }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Preview logic
+        window.previewSelection = function(input) {
+            const container = document.getElementById('previewContainer');
+            const actions = document.getElementById('actionButtons');
+            container.innerHTML = '';
+            if(!input.files.length) {
+                actions.style.setProperty('display', 'none', 'important');
+                return;
+            }
+            Array.from(input.files).forEach(f => {
+                const span = document.createElement('span');
+                span.className = 'preview-chip text-truncate d-inline-block';
+                span.style.maxWidth = '180px';
+                span.innerHTML = `<i class="bi bi-image me-1"></i> ${f.name}`;
+                container.appendChild(span);
+            });
+            actions.style.setProperty('display', 'flex', 'important');
+        };
+
+        window.clearSelection = function() {
+            document.getElementById('fileInput').value = '';
+            document.getElementById('previewContainer').innerHTML = '';
+            document.getElementById('actionButtons').style.setProperty('display', 'none', 'important');
+        };
+
+        // Modal logic
+        let pendingId = null;
+        const delModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+        document.querySelectorAll('.delete-carousel-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                pendingId = this.getAttribute('data-image-id');
+                delModal.show();
+            });
+        });
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+            if(!pendingId) return;
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Deleting...`;
+            
+            const cardWrap = document.getElementById('photoWrap-' + pendingId);
+            if(cardWrap) cardWrap.classList.add('deleting');
+
+            try {
+                const res = await fetch("{{ url_for('admin_carousel_delete') }}", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ image_id: pendingId })
+                });
+                const data = await res.json();
+                delModal.hide();
+                
+                if(data.success) {
+                    if(cardWrap) cardWrap.remove();
+                    
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success position-fixed top-0 start-50 translate-middle-x mt-4 shadow-lg';
+                    alertDiv.style.zIndex = '9999';
+                    alertDiv.innerHTML = `✅ ${data.message}`;
+                    document.body.appendChild(alertDiv);
+                    setTimeout(() => alertDiv.remove(), 3000);
+                } else {
+                    alert("Error: " + data.message);
+                    if(cardWrap) cardWrap.classList.remove('deleting');
+                }
+            } catch (err) {
+                delModal.hide();
+                alert("Network Error: " + err);
+                if(cardWrap) cardWrap.classList.remove('deleting');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-trash my-1"></i> Delete Permanent';
+                pendingId = null;
+            }
+        });
+
+        // SortableJS integration
+        const carouselGrid = document.getElementById('carouselGrid');
+        if (carouselGrid) {
+            new Sortable(carouselGrid, {
+                animation: 250,
+                ghostClass: 'sortable-ghost',
+                onEnd: async function (evt) {
+                    const order = [];
+                    document.querySelectorAll('.sortable-card').forEach(card => {
+                        order.push(parseInt(card.getAttribute('data-id')));
+                    });
+                    
+                    try {
+                        const res = await fetch("{{ url_for('admin_carousel_reorder') }}", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ order: order })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            // Show small success toast
+                            const alertDiv = document.createElement('div');
+                            alertDiv.className = 'alert alert-success position-fixed top-0 start-50 translate-middle-x mt-4 shadow-lg';
+                            alertDiv.style.zIndex = '9999';
+                            alertDiv.innerHTML = `✅ Successfully reordered`;
+                            document.body.appendChild(alertDiv);
+                            setTimeout(() => alertDiv.remove(), 2000);
+                        } else {
+                            alert('Reordering failed: ' + data.message);
+                        }
+                    } catch (err) {
+                        alert('Network Error while reordering');
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

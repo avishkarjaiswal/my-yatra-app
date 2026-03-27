@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
 <section class="py-5 mt-5">
     <div class="container-fluid">
         <div class="row mb-4">
@@ -20,9 +21,9 @@
                                 </label>
                             </div>
                         </div>
-                        <!-- Interest Mode Toggle -->
+                        <!-- Accept Payment Mode Toggle -->
                         <div class="interest-toggle-container d-flex align-items-center">
-                            <span class="text-white me-3">Interest Mode:</span>
+                            <span class="text-white me-3">Accept Payment Mode:</span>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="interestModeToggle"
                                     style="width: 3.5em; height: 1.75em; cursor: pointer;">
@@ -33,26 +34,23 @@
                             </div>
                         </div>
                     </div>
-                    <div>
-                        <a href="{{ url_for('admin_create_registration') }}" class="btn btn-primary me-2">
-                            <i class="bi bi-plus-circle"></i> Create New Registration
+                    <div class="d-flex flex-wrap justify-content-end gap-2">
+                        <a href="{{ url_for('admin_registration_closed_settings') }}" class="btn btn-outline-warning text-white" style="border-width: 2px;">
+                            <i class="bi bi-gear-fill border-white"></i> Closed Page Settings
                         </a>
-                        {% if current_table == 'otm_active' %}
-                        <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal"
-                            data-bs-target="#generateOTMModal">
-                            <i class="bi bi-key-fill"></i> Generate OTM IDs
-                        </button>
-                        {% endif %}
-                        <form method="POST" action="{{ url_for('admin_cleanup_pending') }}" class="d-inline">
-                            <button type="submit" class="btn btn-danger me-2"
-                                onclick="return confirm('Delete all pending registrations older than 30 minutes?')">
-                                <i class="bi bi-trash3"></i> Cleanup Pending
-                            </button>
-                        </form>
-                        <a href="{{ url_for('export_excel', table=current_table) }}" class="btn btn-success me-2">
+                        <a href="{{ url_for('admin_youtube_settings') }}" class="btn btn-outline-danger text-white border-danger" style="border-width: 2px;">
+                            <i class="bi bi-youtube"></i> YouTube Link
+                        </a>
+                        <a href="{{ url_for('admin_manage_yatra') }}" class="btn btn-warning" style="font-weight: 600;">
+                            <i class="bi bi-calendar-plus-fill"></i> Manage a New Yatra
+                        </a>
+                        <a href="{{ url_for('admin_create_registration') }}" class="btn btn-primary" style="font-weight: 600; background: linear-gradient(135deg, #667eea, #764ba2); border: none;">
+                            <i class="bi bi-person-plus-fill"></i> Create Registration
+                        </a>
+                        <a href="{{ url_for('export_excel', table=current_table) }}" class="btn btn-success">
                             <i class="bi bi-file-earmark-excel"></i> Export Excel
                         </a>
-                        <a href="{{ url_for('export_csv', table=current_table) }}" class="btn btn-info me-2">
+                        <a href="{{ url_for('export_csv', table=current_table) }}" class="btn btn-info">
                             <i class="bi bi-file-earmark-text"></i> Export CSV
                         </a>
                         <a href="{{ url_for('admin_logout') }}" class="btn btn-danger">
@@ -68,35 +66,66 @@
             <div class="col-lg-3 mb-4">
                 <div class="card glassmorphism p-3 h-100">
                     <h5 class="text-white mb-3 ps-2 border-start border-warning border-4">📁 Database Tables</h5>
-                    <div class="list-group list-group-flush custom-list-group">
-                        <a href="{{ url_for('admin_dashboard', table='all_passengers') }}"
-                            class="list-group-item list-group-item-action {% if current_table == 'all_passengers' %}active{% endif %}">
-                            <i class="bi bi-people-fill me-2"></i> All Passengers
+                    <div class="list-group list-group-flush custom-list-group" style="max-height: calc(100vh - 250px); overflow-y: auto; padding-right: 5px;">
+                        <a href="{{ url_for('admin_dashboard', table='passengers') }}"
+                            class="list-group-item list-group-item-action {% if current_table == 'passengers' %}active{% endif %}">
+                            <i class="bi bi-person-fill me-2"></i> Login Details
                         </a>
-                        <a href="{{ url_for('admin_dashboard', table='passenger_insider') }}"
-                            class="list-group-item list-group-item-action {% if current_table == 'passenger_insider' %}active{% endif %}">
-                            <i class="bi bi-person-badge-fill me-2"></i> Insiders (OTM)
+                        <a href="{{ url_for('admin_dashboard', table='yatra_details') }}"
+                            class="list-group-item list-group-item-action {% if current_table == 'yatra_details' %}active{% endif %}">
+                            <i class="bi bi-calendar-range-fill me-2"></i> Yatra Details
                         </a>
-                        <a href="{{ url_for('admin_dashboard', table='passenger_outsider') }}"
-                            class="list-group-item list-group-item-action {% if current_table == 'passenger_outsider' %}active{% endif %}">
-                            <i class="bi bi-person-fill me-2"></i> Outsiders
-                        </a>
-                        <a href="{{ url_for('admin_dashboard', table='transactions') }}"
-                            class="list-group-item list-group-item-action {% if current_table == 'transactions' %}active{% endif %}">
-                            <i class="bi bi-credit-card-fill me-2"></i> Transaction Tracking
-                        </a>
-                        <a href="{{ url_for('admin_dashboard', table='otm_active') }}"
-                            class="list-group-item list-group-item-action {% if current_table == 'otm_active' %}active{% endif %}">
-                            <i class="bi bi-check-circle-fill me-2"></i> Active OTM IDs
-                        </a>
-                        <a href="{{ url_for('admin_dashboard', table='otm_expired') }}"
-                            class="list-group-item list-group-item-action {% if current_table == 'otm_expired' %}active{% endif %}">
-                            <i class="bi bi-x-circle-fill me-2"></i> Expired OTM IDs
-                        </a>
-                        <a href="{{ url_for('admin_catalog') }}"
+                        
+                        {% if dynamic_yatra_tables %}
+                        <div class="ps-2 pt-3 pb-1">
+                            <small class="text-warning fw-bold" style="font-size:0.7rem; letter-spacing:1px;">YATRA TABLES</small>
+                        </div>
+                        {% for yt in dynamic_yatra_tables %}
+                        <div class="list-group-item p-0 border-0" style="background: transparent;">
+                            <!-- Table Link Row -->
+                            <div class="d-flex align-items-center">
+                                <a href="{{ url_for('admin_dashboard', table=yt.table_name) }}"
+                                    class="flex-grow-1 list-group-item list-group-item-action border-0 py-2 {% if current_table == yt.table_name %}active{% endif %}"
+                                    style="background: transparent;">
+                                    <i class="bi bi-table me-2"></i> {{ yt.display }}
+                                    {% if not yt.is_active %}
+                                    <span class="badge bg-secondary ms-1" style="font-size:0.6rem;">CLOSED</span>
+                                    {% endif %}
+                                </a>
+                                <!-- Delete button -->
+                                <form method="POST" action="{{ url_for('admin_delete_yatra_table', table_name=yt.table_name) }}"
+                                      class="d-inline px-1"
+                                      onsubmit="return confirm('Delete table for {{ yt.display }}? All data will be lost!')">
+                                    <button type="submit" class="btn btn-sm btn-danger py-0 px-1" title="Delete table">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            <!-- Toggle switch row -->
+                            {% if yt.yatra_id %}
+                            <div class="d-flex align-items-center ps-3 pb-2 gap-2">
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input yatra-toggle" type="checkbox"
+                                           id="toggle_{{ yt.yatra_id }}"
+                                           data-yatra-id="{{ yt.yatra_id }}"
+                                           {% if yt.is_active %}checked{% endif %}
+                                           style="cursor:pointer;">
+                                    <label class="form-check-label small yatra-toggle-label-{{ yt.yatra_id }}"
+                                           for="toggle_{{ yt.yatra_id }}"
+                                           style="color: {% if yt.is_active %}#28a745{% else %}#6c757d{% endif %}; font-size:0.75rem;">
+                                        {% if yt.is_active %}🟢 Open{% else %}🔴 Closed{% endif %}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+
+                        <a href="{{ url_for('admin_carousel') }}"
                             class="list-group-item list-group-item-action border-top border-warning mt-2 pt-2"
                             style="color: #ffc107;">
-                            <i class="bi bi-images me-2"></i> 📸 Catalog Manager
+                            <i class="bi bi-images me-2"></i> 📸 Carousel Manager
                         </a>
                     </div>
                 </div>
@@ -106,12 +135,7 @@
             <div class="col-lg-9">
                 <div class="card glassmorphism p-4">
                     <h4 class="mb-4">
-                        {% if current_table == 'all_passengers' %}All Database Records{% endif %}
-                        {% if current_table == 'passenger_insider' %}Passenger Insider (OTM){% endif %}
-                        {% if current_table == 'passenger_outsider' %}Passenger Outsider{% endif %}
-                        {% if current_table == 'transactions' %}Transaction Tracking{% endif %}
-                        {% if current_table == 'otm_active' %}Active OTM IDs{% endif %}
-                        {% if current_table == 'otm_expired' %}Expired OTM IDs{% endif %}
+                        {% if current_table == 'yatra_details' %}Yatra Details{% else %}Login Details{% endif %}
                     </h4>
                     <p class="text-white mb-3">Total Records: <strong id="totalRecords">{{ records|length }}</strong>
                     </p>
@@ -154,19 +178,46 @@
                         <table class="table table-dark table-striped table-hover mb-0" style="white-space: nowrap;">
                             <thead class="sticky-top" style="background-color: #1a1a2e; z-index: 10;">
                                 <tr>
+                                    <th style="min-width: 150px;">Actions</th>
                                     {% for h in headers %}
                                     <th>{{ h }}</th>
                                     {% endfor %}
-                                    <th style="min-width: 150px;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% if records %}
                                 {% for record in records %}
                                 <tr data-record-id="{{ record.id if record.id else loop.index }}">
+                                    <td>
+                                        {% if current_table == 'yatra_details' %}
+                                        <a href="{{ url_for('admin_edit_yatra', yatra_id=record.id) }}" class="btn btn-sm btn-warning me-1" title="Edit Yatra Details">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        {% else %}
+                                        <button class="btn btn-sm btn-warning me-1 edit-btn"
+                                            data-record-id="{{ record.id if record.id else loop.index }}"
+                                            data-bs-toggle="modal" data-bs-target="#editModal" title="Edit Record">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        {% endif %}
+                                        <button class="btn btn-sm btn-danger delete-btn"
+                                            data-record-id="{{ record.id if record.id else loop.index }}"
+                                            data-record-name="{{ record.cols[5] if record.cols|length > 6 else 'this record' }}"
+                                            title="Delete Record">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
                                     {% for col in record.cols %}
                                     <td>
-                                        {% if col == 'Paid' %}
+                                        {% if col is mapping and col.type == 'photo' %}
+                                            {% if col.url %}
+                                            <a href="{{ col.url }}" target="_blank">
+                                                <img src="{{ col.url }}" alt="Photo" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.2);">
+                                            </a>
+                                            {% else %}
+                                            <div style="width: 45px; height: 45px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border: 2px solid rgba(255,255,255,0.2);"><i class="bi bi-person text-secondary"></i></div>
+                                            {% endif %}
+                                        {% elif col == 'Paid' %}
                                         <span class="badge bg-success">Paid</span>
                                         {% elif col == 'Pending' %}
                                         <span class="badge bg-warning">Pending</span>
@@ -179,27 +230,6 @@
                                         {% endif %}
                                     </td>
                                     {% endfor %}
-                                    <td>
-                                        {% if record.id and current_table in ['passenger_insider', 'passenger_outsider',
-                                        'all_passengers'] %}
-                                        <a href="{{ url_for('admin_generate_receipt', record_id=record.id, table=current_table) }}"
-                                            class="btn btn-sm btn-success me-1" title="Generate Receipt"
-                                            target="_blank">
-                                            <i class="bi bi-receipt"></i>
-                                        </a>
-                                        {% endif %}
-                                        <button class="btn btn-sm btn-warning me-1 edit-btn"
-                                            data-record-id="{{ record.id if record.id else loop.index }}"
-                                            data-bs-toggle="modal" data-bs-target="#editModal" title="Edit Record">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger delete-btn"
-                                            data-record-id="{{ record.id if record.id else loop.index }}"
-                                            data-record-name="{{ record.cols[0] if record.cols else 'this record' }}"
-                                            title="Delete Record">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
                                 </tr>
                                 {% endfor %}
                                 {% else %}
@@ -244,52 +274,7 @@
     </div>
 </div>
 
-<!-- Generate OTM IDs Modal -->
-<div class="modal fade" id="generateOTMModal" tabindex="-1" aria-labelledby="generateOTMModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content" style="background: #1a1a2e; color: white;">
-            <div class="modal-header" style="border-color: rgba(255, 255, 255, 0.1);">
-                <h5 class="modal-title" id="generateOTMModalLabel">
-                    <i class="bi bi-key-fill me-2"></i>Generate OTM IDs
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
-            </div>
-            <form id="generateOTMForm" method="POST" action="{{ url_for('generate_otm_ids') }}">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="otm_quantity" class="form-label">
-                            <i class="bi bi-hash me-1"></i>Number of OTM IDs to Generate *
-                        </label>
-                        <input type="number" class="form-control" id="otm_quantity" name="quantity" min="1" max="100"
-                            value="10" required>
-                        <small class="text-white-50">Generate 1-100 OTM IDs at once</small>
-                    </div>
-                    <div class="mb-3">
-                        <label for="otm_prefix" class="form-label">
-                            <i class="bi bi-tag me-1"></i>Prefix (Optional)
-                        </label>
-                        <input type="text" class="form-control" id="otm_prefix" name="prefix" maxlength="10"
-                            placeholder="e.g., DY2026">
-                        <small class="text-white-50">Add a prefix to all generated IDs</small>
-                    </div>
-                    <div class="alert alert-info"
-                        style="background: rgba(13, 202, 240, 0.15); border: 1px solid rgba(13, 202, 240, 0.3);">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        <strong>Format:</strong> Generated IDs will be 5-character alphanumeric codes (e.g.,
-                        "DY2026A1B2C" or "X9Y8Z")
-                    </div>
-                </div>
-                <div class="modal-footer" style="border-color: rgba(255, 255, 255, 0.1);">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-warning">
-                        <i class="bi bi-key-fill me-1"></i>Generate OTM IDs
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+
 
 <style>
     .custom-list-group .list-group-item {
@@ -366,12 +351,12 @@
         border-left: 4px solid #ffc107;
     }
 
-    /* Interest Mode Toggle Styles */
+    /* Accept Payment Mode Toggle Styles */
     .interest-toggle-container {
         padding: 10px 15px;
-        background: rgba(155, 89, 182, 0.1);
+        background: rgba(40, 167, 69, 0.1);
         border-radius: 8px;
-        border-left: 4px solid #9b59b6;
+        border-left: 4px solid #28a745;
     }
 
     #registrationToggle:checked {
@@ -389,17 +374,31 @@
     }
 
     #interestModeToggle:checked {
-        background-color: #9b59b6;
-        border-color: #9b59b6;
+        background-color: #28a745;
+        border-color: #28a745;
     }
 
     #interestModeToggle:not(:checked) {
-        background-color: #6c757d;
-        border-color: #6c757d;
+        background-color: #dc3545;
+        border-color: #dc3545;
     }
 
     #interestModeToggle:focus {
-        box-shadow: 0 0 0 0.25rem rgba(155, 89, 182, 0.25);
+        box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
+    }
+    /* Custom Scrollbar for Yatra Tables */
+    .dynamic-tables-scroll::-webkit-scrollbar {
+        width: 4px;
+    }
+    .dynamic-tables-scroll::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .dynamic-tables-scroll::-webkit-scrollbar-thumb {
+        background: rgba(255, 193, 7, 0.3);
+        border-radius: 4px;
+    }
+    .dynamic-tables-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 193, 7, 0.5);
     }
 </style>
 
@@ -415,68 +414,48 @@
         const searchColumn = document.getElementById('searchColumn');
         const clearButton = document.getElementById('clearSearch');
         const tableBody = document.querySelector('tbody');
-        const rows = tableBody.querySelectorAll('tr');
         const visibleRecordsSpan = document.getElementById('visibleRecords');
-        const totalRecordsSpan = document.getElementById('totalRecordsBottom');
+        const totalRecordsEl = document.getElementById('totalRecords');
 
-        // Get the total number of data rows (excluding "no passengers" row)
-        const totalRows = rows.length > 0 && rows[0].querySelector('td[colspan]') ? 0 : rows.length;
+        // Live rows (re-query each time to include dynamically removed rows)
+        function getRows() {
+            return Array.from(tableBody.querySelectorAll('tr[data-record-id]'));
+        }
 
         function performSearch() {
             const searchTerm = searchBox.value.toLowerCase().trim();
             const columnIndex = searchColumn.value;
             let visibleCount = 0;
 
-            rows.forEach(row => {
-                // Skip the "no passengers" row
-                if (row.querySelector('td[colspan]')) {
-                    return;
-                }
-
+            getRows().forEach(row => {
                 let shouldShow = false;
-
                 if (searchTerm === '') {
                     shouldShow = true;
                 } else if (columnIndex === 'all') {
-                    // Search all columns
-                    const rowText = row.textContent.toLowerCase();
-                    shouldShow = rowText.includes(searchTerm);
+                    shouldShow = row.textContent.toLowerCase().includes(searchTerm);
                 } else {
-                    // Search specific column (columnIndex is 1-based, but we need 0-based for cells)
-                    const cellIndex = parseInt(columnIndex);
+                    // Actions column is index 0, data columns start at index 1
+                    const cellIndex = parseInt(columnIndex) + 1;
                     const cell = row.cells[cellIndex];
-                    if (cell) {
-                        const cellText = cell.textContent.toLowerCase();
-                        shouldShow = cellText.includes(searchTerm);
-                    }
+                    if (cell) shouldShow = cell.textContent.toLowerCase().includes(searchTerm);
                 }
-
-                if (shouldShow) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
+                row.style.display = shouldShow ? '' : 'none';
+                if (shouldShow) visibleCount++;
             });
 
-            // Update visible records count
             visibleRecordsSpan.textContent = visibleCount;
 
-            // Show "no results" message if needed
-            if (visibleCount === 0 && totalRows > 0) {
-                let noResultsRow = document.getElementById('noResultsRow');
+            let noResultsRow = document.getElementById('noResultsRow');
+            if (visibleCount === 0 && getRows().length > 0) {
                 if (!noResultsRow) {
                     noResultsRow = document.createElement('tr');
                     noResultsRow.id = 'noResultsRow';
-                    noResultsRow.innerHTML = '<td colspan="13" class="text-center text-warning">No matching records found.</td>';
+                    noResultsRow.innerHTML = '<td colspan="20" class="text-center text-warning">No matching records found.</td>';
                     tableBody.appendChild(noResultsRow);
                 }
                 noResultsRow.style.display = '';
-            } else {
-                const noResultsRow = document.getElementById('noResultsRow');
-                if (noResultsRow) {
-                    noResultsRow.style.display = 'none';
-                }
+            } else if (noResultsRow) {
+                noResultsRow.style.display = 'none';
             }
         }
 
@@ -486,87 +465,171 @@
             performSearch();
         }
 
-        // Event listeners
         searchBox.addEventListener('input', performSearch);
         searchColumn.addEventListener('change', performSearch);
         clearButton.addEventListener('click', clearSearch);
-
-        // Allow pressing Enter in search box
         searchBox.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                performSearch();
-            }
+            if (e.key === 'Enter') { e.preventDefault(); performSearch(); }
         });
 
-        // CRUD Operations
-        // Edit button click handler
+        // ── Toast helper ──
+        function showToast(message, type = 'success') {
+            let container = document.getElementById('adminToastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'adminToastContainer';
+                container.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;min-width:320px;';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show shadow`;
+            toast.style.cssText = 'font-size:0.9rem;border-radius:8px;';
+            toast.innerHTML = `<strong>${type === 'success' ? '✅' : '❌'}</strong> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3500);
+        }
+
+        // ── Edit button: populate modal ──
+        const headers = {{ headers | tojson | safe }};
+
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', function () {
                 const recordId = this.getAttribute('data-record-id');
                 const row = this.closest('tr');
+                // Actions column is cells[0]; data starts at cells[1]
                 const cells = row.querySelectorAll('td');
-                const headers = {{ headers | tojson | safe
-            }};
 
-        // Set record ID
-        document.getElementById('edit_record_id').value = recordId;
+                document.getElementById('edit_record_id').value = recordId;
 
-        // Build form fields
-        const formFields = document.getElementById('editFormFields');
-        formFields.innerHTML = '';
+                const formFields = document.getElementById('editFormFields');
+                formFields.innerHTML = '';
 
-        headers.forEach((header, index) => {
-            const cellValue = cells[index].textContent.trim();
-            const fieldId = `edit_${header.replace(/\s+/g, '_').toLowerCase()}`;
-
-            const formGroup = document.createElement('div');
-            formGroup.className = 'mb-3';
-            formGroup.innerHTML = `
+                headers.forEach((header, index) => {
+                    // +1 offset because Actions cell is first
+                    const cellValue = cells[index + 1] ? cells[index + 1].textContent.trim() : '';
+                    const fieldId = `edit_${header.replace(/\s+/g, '_').toLowerCase()}`;
+                    const formGroup = document.createElement('div');
+                    formGroup.className = 'mb-3';
+                    formGroup.innerHTML = `
                         <label for="${fieldId}" class="form-label">${header}</label>
-                        <input type="text" class="form-control" id="${fieldId}" name="${header}" value="${cellValue}">
+                        <input type="text" class="form-control" id="${fieldId}" name="${header}" value="${cellValue.replace(/"/g, '&quot;')}">
                     `;
-            formFields.appendChild(formGroup);
-        });
-    });
+                    formFields.appendChild(formGroup);
+                });
+            });
         });
 
-    // Delete button click handler
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const recordId = this.getAttribute('data-record-id');
-            const recordName = this.getAttribute('data-record-name');
+        // ── Edit form: AJAX submit → update row in-place ──
+        const editForm = document.getElementById('editForm');
+        if (editForm) {
+            editForm.addEventListener('submit', function (e) {
+                e.preventDefault();
 
-            if (confirm(`Are you sure you want to delete the record for "${recordName}"?\n\nThis action cannot be undone.`)) {
-                // Send delete request
-                fetch('{{ url_for("admin_delete_record") }}', {
+                const saveBtn = editForm.querySelector('button[type="submit"]');
+                const origHtml = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+                saveBtn.disabled = true;
+
+                fetch(editForm.action, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        record_id: recordId,
-                        table_name: '{{ current_table }}'
-                    })
+                    body: new FormData(editForm)
                 })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('Record deleted successfully!');
-                            location.reload();
-                        } else {
-                            alert('Error deleting record: ' + data.message);
+                .then(r => r.json())
+                .then(data => {
+                    saveBtn.innerHTML = origHtml;
+                    saveBtn.disabled = false;
+
+                    if (data.success) {
+                        // Close modal
+                        const modalEl = document.getElementById('editModal');
+                        bootstrap.Modal.getInstance(modalEl)?.hide();
+
+                        // Update row cells in-place
+                        const recordId = document.getElementById('edit_record_id').value;
+                        const row = document.querySelector(`tr[data-record-id="${recordId}"]`);
+                        if (row && data.updated_values) {
+                            const cells = row.querySelectorAll('td');
+                            headers.forEach((header, index) => {
+                                const cell = cells[index + 1]; // +1 for Actions column
+                                if (cell && data.updated_values[header] !== undefined) {
+                                    // Skip photo cells
+                                    if (!cell.querySelector('img') && !cell.querySelector('.bi-person')) {
+                                        cell.textContent = data.updated_values[header] || '-';
+                                    }
+                                }
+                            });
+                            // Flash the row to indicate update
+                            row.style.transition = 'background 0.3s';
+                            row.style.background = 'rgba(255,193,7,0.25)';
+                            setTimeout(() => { row.style.background = ''; }, 1200);
                         }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error deleting record. Please try again.');
-                    });
-            }
+
+                        showToast(data.message, 'success');
+                    } else {
+                        showToast(data.message || 'Update failed.', 'error');
+                    }
+                })
+                .catch(() => {
+                    saveBtn.innerHTML = origHtml;
+                    saveBtn.disabled = false;
+                    showToast('Network error. Please try again.', 'error');
+                });
+            });
+        }
+
+        // ── Delete button: AJAX → remove row from DOM ──
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const recordId = this.getAttribute('data-record-id');
+                const recordName = this.getAttribute('data-record-name');
+                const row = this.closest('tr');
+
+                if (!confirm(`Delete record "${recordName}"?\n\nThis cannot be undone.`)) return;
+
+                // Visual feedback — dim the row
+                row.style.opacity = '0.4';
+                row.style.pointerEvents = 'none';
+
+                fetch("{{ url_for('admin_delete_record') }}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ record_id: recordId, table_name: '{{ current_table }}' })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        // Animate row out, then remove
+                        row.style.transition = 'all 0.35s ease';
+                        row.style.transform = 'translateX(-20px)';
+                        row.style.opacity = '0';
+                        setTimeout(() => {
+                            row.remove();
+                            // Update counters
+                            const remaining = getRows().length;
+                            visibleRecordsSpan.textContent = remaining;
+                            if (totalRecordsEl) totalRecordsEl.textContent = remaining;
+                            const totalBottom = document.getElementById('totalRecordsBottom');
+                            if (totalBottom) totalBottom.textContent = remaining;
+                            performSearch();
+                        }, 380);
+                        showToast(data.message, 'success');
+                    } else {
+                        row.style.opacity = '1';
+                        row.style.pointerEvents = '';
+                        showToast(data.message || 'Delete failed.', 'error');
+                    }
+                })
+                .catch(() => {
+                    row.style.opacity = '1';
+                    row.style.pointerEvents = '';
+                    showToast('Network error. Please try again.', 'error');
+                });
+            });
         });
-    });
     });
 </script>
+
 
 <script>
     // Registration Toggle Functionality
@@ -576,7 +639,7 @@
 
         // Load current registration status
         function loadRegistrationStatus() {
-            fetch('{{ url_for("get_registration_status") }}')
+            fetch("{{ url_for('get_registration_status') }}")
                 .then(response => response.json())
                 .then(data => {
                     toggle.checked = data.enabled;
@@ -620,7 +683,7 @@
             statusLabel.className = 'form-check-label ms-2 text-warning';
 
             // Send update request
-            fetch('{{ url_for("toggle_registration") }}', {
+            fetch("{{ url_for('toggle_registration') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -665,33 +728,33 @@
 </script>
 
 <script>
-    // Interest Mode Toggle Functionality
+    // Accept Payment Mode Toggle Functionality
     document.addEventListener('DOMContentLoaded', function () {
         const toggle = document.getElementById('interestModeToggle');
         const statusLabel = document.getElementById('interestModeStatus');
 
-        function loadInterestModeStatus() {
-            fetch('{{ url_for("get_interest_mode_status") }}')
+        function loadAcceptPaymentStatus() {
+            fetch("{{ url_for('get_accept_payment_status') }}")
                 .then(response => response.json())
                 .then(data => {
-                    toggle.checked = data.interest_mode;
-                    updateInterestLabel(data.interest_mode);
+                    toggle.checked = data.accept_payment_mode;
+                    updateLabel(data.accept_payment_mode);
                 })
                 .catch(error => {
-                    console.error('Error loading interest mode status:', error);
+                    console.error('Error loading accept payment status:', error);
                     statusLabel.textContent = 'Error loading status';
                     statusLabel.className = 'form-check-label ms-2 text-danger';
                 });
         }
 
-        function updateInterestLabel(isEnabled) {
+        function updateLabel(isEnabled) {
             if (isEnabled) {
-                statusLabel.textContent = '🟣 Interest Mode ON (No Payment)';
-                statusLabel.className = 'form-check-label ms-2';
-                statusLabel.style.color = '#c39bd3';
+                statusLabel.textContent = '🟢 Payments Accepted (ON)';
+                statusLabel.className = 'form-check-label ms-2 text-success';
+                statusLabel.style.color = '';
             } else {
-                statusLabel.textContent = '⚫ Interest Mode OFF';
-                statusLabel.className = 'form-check-label ms-2 text-secondary';
+                statusLabel.textContent = '🔴 Payments Paused (OFF)';
+                statusLabel.className = 'form-check-label ms-2 text-danger';
                 statusLabel.style.color = '';
             }
             statusLabel.style.fontWeight = '600';
@@ -701,8 +764,8 @@
         toggle.addEventListener('change', function () {
             const newStatus = this.checked;
             const confirmMessage = newStatus
-                ? '⚠️ Enable Interest Mode?\n\nIn this mode, users can complete registration WITHOUT any payment. All data will be saved with payment_status = "not_initiated".\n\nThis is useful for gauging interest before official registration opens.'
-                : 'Disable Interest Mode?\n\nUsers will proceed to the normal payment flow.';
+                ? '✅ Enable Accept Payment Mode?\n\nTravelers will be able to pay via Razorpay from their dashboard. Pending buttons will trigger live payment.'
+                : '⛔ Disable Accept Payment Mode?\n\nTravelers will NOT be able to make payments. Clicking the Pending button will show a "not yet accepting payments" message.';
 
             if (!confirm(confirmMessage)) {
                 this.checked = !newStatus;
@@ -712,15 +775,15 @@
             statusLabel.textContent = 'Updating...';
             statusLabel.className = 'form-check-label ms-2 text-warning';
 
-            fetch('{{ url_for("toggle_interest_mode") }}', {
+            fetch("{{ url_for('toggle_accept_payment') }}", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ interest_mode: newStatus })
+                body: JSON.stringify({ accept_payment_mode: newStatus })
             })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        updateInterestLabel(data.interest_mode);
+                        updateLabel(data.accept_payment_mode);
                         const alertDiv = document.createElement('div');
                         alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
                         alertDiv.style.zIndex = '9999';
@@ -730,19 +793,47 @@
                     } else {
                         alert('Error: ' + data.message);
                         toggle.checked = !newStatus;
-                        loadInterestModeStatus();
+                        loadAcceptPaymentStatus();
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Failed to update interest mode. Please try again.');
+                    alert('Failed to update accept payment mode. Please try again.');
                     toggle.checked = !newStatus;
-                    loadInterestModeStatus();
+                    loadAcceptPaymentStatus();
                 });
         });
 
-        loadInterestModeStatus();
+        loadAcceptPaymentStatus();
     });
+</script>
+
+<script>
+// Yatra Active/Closed Toggle
+document.querySelectorAll('.yatra-toggle').forEach(function(toggle) {
+    toggle.addEventListener('change', function() {
+        const yatraId = this.dataset.yatraId;
+        const isChecked = this.checked;
+        const label = document.querySelector('.yatra-toggle-label-' + yatraId);
+
+        fetch('/admin/toggle-yatra/' + yatraId, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': ''}
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                if (label) {
+                    label.textContent = data.is_active ? '🟢 Open' : '🔴 Closed';
+                    label.className = label.className.replace(/text-\w+/, data.is_active ? 'text-success' : 'text-secondary');
+                }
+            } else {
+                this.checked = !isChecked; // revert
+            }
+        })
+        .catch(() => { this.checked = !isChecked; });
+    });
+});
 </script>
 
 {% endblock %}

@@ -9,28 +9,89 @@
                     <h2 class="text-center mb-4">🔐 Admin Login</h2>
                     <p class="text-center text-white mb-4">Access the admin dashboard</p>
 
-                    <form action="{{ url_for('admin_login') }}" method="POST">
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input type="text" name="username" class="form-control" required autofocus>
-                        </div>
+                    <div id="loginMsg" class="alert d-none mb-3" role="alert"></div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control" required>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" id="adminUsername" class="form-control" required autofocus>
+                    </div>
 
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-success btn-lg">Login</button>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="adminPassword" class="form-control" required>
+                    </div>
 
-                        <div class="text-center mt-3">
-                            <a href="{{ url_for('index') }}" class="text-white">← Back to Home</a>
-                        </div>
-                    </form>
+                    <div class="d-grid mt-4">
+                        <button type="button" id="adminLoginBtn" class="btn btn-success btn-lg">Login</button>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('index') }}" class="text-white">← Back to Home</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 {% endblock %}
+
+{% block scripts %}
+<script>
+    function doAdminLogin() {
+        const username = document.getElementById('adminUsername').value.trim();
+        const password = document.getElementById('adminPassword').value;
+        const btn = document.getElementById('adminLoginBtn');
+        const msgDiv = document.getElementById('loginMsg');
+
+        if (!username || !password) {
+            msgDiv.className = 'alert alert-warning mb-3';
+            msgDiv.textContent = 'Please enter both username and password.';
+            msgDiv.classList.remove('d-none');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Logging in...';
+        msgDiv.classList.add('d-none');
+
+        fetch("{{ url_for('admin_login') }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                // Store admin tab token in sessionStorage — tab-isolated
+                if (data.admin_tab_token) {
+                    sessionStorage.setItem('admin_tab_token', data.admin_tab_token);
+                }
+                window.location.href = data.redirect;
+            } else {
+                msgDiv.className = 'alert alert-danger mb-3';
+                msgDiv.textContent = data.message || 'Invalid credentials.';
+                msgDiv.classList.remove('d-none');
+                btn.disabled = false;
+                btn.textContent = 'Login';
+            }
+        })
+        .catch(() => {
+            msgDiv.className = 'alert alert-danger mb-3';
+            msgDiv.textContent = 'Network error. Please try again.';
+            msgDiv.classList.remove('d-none');
+            btn.disabled = false;
+            btn.textContent = 'Login';
+        });
+    }
+
+    document.getElementById('adminLoginBtn').addEventListener('click', doAdminLogin);
+
+    // Allow Enter key in password field
+    document.getElementById('adminPassword').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') doAdminLogin();
+    });
+    document.getElementById('adminUsername').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') doAdminLogin();
+    });
+</script>
+{% endblock %}

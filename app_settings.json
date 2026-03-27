@@ -1,5 +1,6 @@
 {
     "registration_enabled": true,
     "registration_closed_message": "Thank you for your overwhelming response. All seats are currently booked as of today. Kindly wait until 1st April 2026 for the opening of the second registration slot.",
-    "interest_mode": true
+    "interest_mode": true,
+    "accept_payment_mode": false
 }

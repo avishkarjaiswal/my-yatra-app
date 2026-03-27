@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Design Registration Closed Page - Admin{% endblock %}
+
+{% block content %}
+<section class="py-5 mt-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card glassmorphism p-4 p-md-5">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-warning pb-3">
+                        <h2 class="mb-0" style="font-weight: 700; color: #fff;">
+                            <i class="bi bi-x-octagon-fill me-2" style="color: #ffc107;"></i>Registration Closed Settings
+                        </h2>
+                        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-warning btn-sm">
+                            <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                        </a>
+                    </div>
+                    
+                    <p class="text-white-50 mb-4">
+                        Set the title and description that potential passengers will see when they attempt to register while registrations are closed.
+                    </p>
+
+                    <form action="{{ url_for('admin_registration_closed_settings') }}" method="POST">
+                        <div class="mb-4">
+                            <label class="form-label text-warning" for="title">
+                                <i class="bi bi-fonts me-2"></i>Page Title
+                            </label>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ title }}" required placeholder="e.g. Registration is now Closed">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-warning" for="description">
+                                <i class="bi bi-card-text me-2"></i>Closure Description
+                            </label>
+                            <textarea class="form-control" id="description" name="description" rows="5" required placeholder="Enter the detailed explanation here...">{{ description }}</textarea>
+                        </div>
+                        
+                        <div class="d-grid mt-5">
+                            <button type="submit" class="btn btn-warning btn-lg fw-bold" style="color: #000;">
+                                <i class="bi bi-floppy-fill me-2"></i>Save Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .form-control {
+        background: rgba(0, 0, 0, 0.3) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        border-radius: 8px !important;
+        padding: 12px 15px !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .form-control:focus {
+        background: rgba(0, 0, 0, 0.4) !important;
+        border-color: #ffc107 !important;
+        box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.15) !important;
+    }
+
+    .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.4) !important;
+    }
+</style>
+{% endblock %}

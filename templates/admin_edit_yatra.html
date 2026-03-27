@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Yatra Details - Admin{% endblock %}
+
+{% block content %}
+<section class="py-5 mt-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card glassmorphism p-4 p-md-5 border-warning">
+                    <div
+                        class="d-flex justify-content-between align-items-center mb-4 border-bottom border-warning pb-3 flex-wrap gap-2">
+                        <h2 class="mb-0 text-white" style="font-weight: 700;">
+                            <i class="bi bi-pencil-square me-2" style="color: #ffc107;"></i>Edit Yatra: {{ yatra.title
+                            }}
+                        </h2>
+                        <a href="{{ url_for('admin_dashboard', table='yatra_details') }}"
+                            class="btn btn-outline-warning">
+                            <i class="bi bi-arrow-left me-1"></i>Back
+                        </a>
+                    </div>
+
+                    <form action="{{ url_for('admin_edit_yatra', yatra_id=yatra.id) }}" method="POST" enctype="multipart/form-data">
+
+                        <!-- Title -->
+                        <div class="mb-4">
+                            <label class="form-label text-white" for="title">
+                                <i class="bi bi-cursor-text me-2 text-warning"></i>Title of Yatra *
+                            </label>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ yatra.title }}"
+                                required
+                                style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;">
+                        </div>
+
+                        <!-- Setup About Image -->
+                        <div class="mb-4">
+                            <label class="form-label text-white d-block" for="about_image">
+                                <i class="bi bi-image me-2 text-warning"></i>About Yatra Image
+                            </label>
+                            {% if yatra.about_image %}
+                            <div class="mb-3">
+                                <img src="{{ url_for('static', filename=yatra.about_image) }}" alt="Current About Yatra" class="img-thumbnail" style="max-height: 120px; border-color: rgba(255,193,7,0.5);">
+                                <small class="text-white-50 ms-2 d-block mt-1">Current promotional image</small>
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="about_image" name="about_image" accept="image/*" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;">
+                            <small class="text-white-50 mt-1 d-block"><i class="bi bi-info-circle me-1"></i>Upload a new promotional image to replace the current one.</small>
+                        </div>
+
+                        <div class="row mb-4">
+                            <!-- Start Date -->
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label class="form-label text-white" for="starting_date">
+                                    <i class="bi bi-calendar-check me-2 text-warning"></i>Starting Date
+                                </label>
+                                <input type="date" class="form-control mb-2" id="starting_date" name="starting_date"
+                                    value="{{ yatra.starting_date.strftime('%Y-%m-%d') if yatra.starting_date else '' }}"
+                                    style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;">
+
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" id="is_start_fixed"
+                                        name="is_start_fixed" {% if yatra.is_start_fixed %}checked{% endif %}>
+                                    <label class="form-check-label text-white-50 ms-2" for="is_start_fixed">Is Starting
+                                        Date Fixed?</label>
+                                </div>
+                            </div>
+
+                            <!-- End Date -->
+                            <div class="col-md-6">
+                                <label class="form-label text-white" for="end_date">
+                                    <i class="bi bi-calendar-x me-2 text-warning"></i>End Date
+                                </label>
+                                <input type="date" class="form-control mb-2" id="end_date" name="end_date"
+                                    value="{{ yatra.end_date.strftime('%Y-%m-%d') if yatra.end_date else '' }}"
+                                    style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;">
+
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" id="is_end_fixed"
+                                        name="is_end_fixed" {% if yatra.is_end_fixed %}checked{% endif %}>
+                                    <label class="form-check-label text-white-50 ms-2" for="is_end_fixed">Is End Date
+                                        Fixed?</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <!-- Hotel Packages -->
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label class="form-label text-white d-flex justify-content-between align-items-center">
+                                    <span><i class="bi bi-building me-2 text-warning"></i>Hotel Packages</span>
+                                    <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2"
+                                        id="add_hotel_pkg"><i class="bi bi-plus"></i></button>
+                                </label>
+                                <div id="hotel_packages_container">
+                                    {% for ht in hotel_packages %}
+                                    <div class="input-group mb-2">
+                                        <input type="text" name="hotel_title[]" class="form-control" placeholder="Title"
+                                            value="{{ ht.title if ht is mapping else ht }}"
+                                            style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;"
+                                            required>
+                                        <input type="number" name="hotel_price[]" class="form-control"
+                                            placeholder="Price (₹)" value="{{ ht.price if ht is mapping else 0 }}"
+                                            style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;"
+                                            required>
+                                        <button class="btn btn-outline-danger" type="button"
+                                            onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+                                    </div>
+                                    {% else %}
+                                    <div class="input-group mb-2">
+                                        <input type="text" name="hotel_title[]" class="form-control"
+                                            placeholder="Title (e.g. Basic)"
+                                            style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;"
+                                            required>
+                                        <input type="number" name="hotel_price[]" class="form-control"
+                                            placeholder="Price (₹)"
+                                            style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;"
+                                            required>
+                                        <button class="btn btn-outline-danger" type="button"
+                                            onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <small class="text-white-50 mt-1 d-block"><i class="bi bi-info-circle me-1"></i>Add
+                                    dynamic hotel options and pricing.</small>
+                            </div>
+
+                            <!-- Travel Packages -->
+                            <div class="col-md-6">
+                                <label class="form-label text-white d-flex justify-content-between align-items-center">
+                                    <span><i class="bi bi-car-front-fill me-2 text-warning"></i>Travel Packages</span>
+                                    <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2"
+                                        id="add_travel_pkg"><i class="bi bi-plus"></i></button>
+                                </label>
+                                <div id="travel_packages_container">
+                                    {% for tr in travel_packages %}
+                                    <div class="input-group mb-2">
+                                        <input type="text" name="travel_title[]" class="form-control"
+                                            placeholder="Title" value="{{ tr.title if tr is mapping else tr }}"
+                                            style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;"
+                                            required>
+                                        <input type="number" name="travel_price[]" class="form-control"
+                                            placeholder="Price (₹)" value="{{ tr.price if tr is mapping else 0 }}"
+                                            style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;"
+                                            required>
+                                        <button class="btn btn-outline-danger" type="button"
+                                            onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+                                    </div>
+                                    {% else %}
+                                    <div class="input-group mb-2">
+                                        <input type="text" name="travel_title[]" class="form-control"
+                                            placeholder="Title (e.g. Flight)"
+                                            style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;"
+                                            required>
+                                        <input type="number" name="travel_price[]" class="form-control"
+                                            placeholder="Price (₹)"
+                                            style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;"
+                                            required>
+                                        <button class="btn btn-outline-danger" type="button"
+                                            onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <small class="text-white-50 mt-1 d-block"><i class="bi bi-info-circle me-1"></i>Add
+                                    dynamic travel options and pricing.</small>
+                            </div>
+                        </div>
+
+                        <!-- Yatra Message -->
+                        <div class="mb-4">
+                            <label class="form-label text-white" for="yatra_message">
+                                <i class="bi bi-chat-left-dots me-2 text-warning"></i>Message for Passengers
+                            </label>
+                            <textarea class="form-control" id="yatra_message" name="yatra_message" rows="3" placeholder="Enter a message to show in the passenger dashboard" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;">{{ yatra.yatra_message or '' }}</textarea>
+                            <small class="text-white-50 mt-1 d-block"><i class="bi bi-info-circle me-1"></i>This message will be shown to travelers when they select this yatra.</small>
+                        </div>
+
+                        <!-- Yatra Link -->
+                        <div class="mb-4">
+                            <label class="form-label text-white" for="yatra_link">
+                                <i class="bi bi-link-45deg me-2 text-warning"></i>External Link (Optional)
+                            </label>
+                            <input type="url" class="form-control" id="yatra_link" name="yatra_link" value="{{ yatra.yatra_link or '' }}" placeholder="https://example.com" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;">
+                            <small class="text-white-50 mt-1 d-block"><i class="bi bi-info-circle me-1"></i>A link to a YouTube video, PDF, or website for more details.</small>
+                        </div>
+
+                        <div class="d-grid mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg"
+                                style="background: linear-gradient(90deg, #ff512f, #dd2476); border: none; font-weight: 600;">
+                                <i class="bi bi-save-fill me-2"></i>Update Yatra Details
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.getElementById('add_hotel_pkg').addEventListener('click', function () {
+        const container = document.getElementById('hotel_packages_container');
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2';
+        div.innerHTML = `
+            <input type="text" name="hotel_title[]" class="form-control" placeholder="Title" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;" required>
+            <input type="number" name="hotel_price[]" class="form-control" placeholder="Price (₹)" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;" required>
+            <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+        `;
+        container.appendChild(div);
+    });
+
+    document.getElementById('add_travel_pkg').addEventListener('click', function () {
+        const container = document.getElementById('travel_packages_container');
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2';
+        div.innerHTML = `
+            <input type="text" name="travel_title[]" class="form-control" placeholder="Title" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;" required>
+            <input type="number" name="travel_price[]" class="form-control" placeholder="Price (₹)" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;" required>
+            <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+        `;
+        container.appendChild(div);
+    });
+</script>
+
+<style>
+    .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.4) !important;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        background: rgba(0, 0, 0, 0.5) !important;
+        color: white !important;
+        border-color: #ffc107 !important;
+        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25) !important;
+    }
+
+    ::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+    }
+</style>
+{% endblock %}

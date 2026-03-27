@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage a New Yatra - Admin{% endblock %}
+
+{% block content %}
+<section class="py-5 mt-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card glassmorphism p-4 p-md-5 border-warning">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-warning pb-3 flex-wrap gap-2">
+                        <h2 class="mb-0 text-white" style="font-weight: 700;">
+                            <i class="bi bi-calendar-plus-fill me-2" style="color: #ffc107;"></i>Manage a New Yatra
+                        </h2>
+                        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-warning">
+                            <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                        </a>
+                    </div>
+                    
+                    <form action="{{ url_for('admin_manage_yatra') }}" method="POST" enctype="multipart/form-data">
+                        
+                        <!-- Title -->
+                        <div class="mb-4">
+                            <label class="form-label text-white" for="title">
+                                <i class="bi bi-cursor-text me-2 text-warning"></i>Title of Yatra *
+                            </label>
+                            <input type="text" class="form-control" id="title" name="title" required placeholder="Enter yatra title (e.g., Summer Vrindavan Tour)" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;">
+                        </div>
+                        
+                        <!-- Setup About Image -->
+                        <div class="mb-4">
+                            <label class="form-label text-white" for="about_image">
+                                <i class="bi bi-image me-2 text-warning"></i>About Yatra Image
+                            </label>
+                            <input type="file" class="form-control" id="about_image" name="about_image" accept="image/*" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;">
+                            <small class="text-white-50 mt-1 d-block"><i class="bi bi-info-circle me-1"></i>Optional: Upload a promotional image to show travelers in the dashboard.</small>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <!-- Start Date -->
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label class="form-label text-white" for="starting_date">
+                                    <i class="bi bi-calendar-check me-2 text-warning"></i>Starting Date
+                                </label>
+                                <input type="date" class="form-control mb-2" id="starting_date" name="starting_date" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;">
+                                
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" id="is_start_fixed" name="is_start_fixed" checked>
+                                    <label class="form-check-label text-white-50 ms-2" for="is_start_fixed">Is Starting Date Fixed?</label>
+                                </div>
+                            </div>
+                            
+                            <!-- End Date -->
+                            <div class="col-md-6">
+                                <label class="form-label text-white" for="end_date">
+                                    <i class="bi bi-calendar-x me-2 text-warning"></i>End Date
+                                </label>
+                                <input type="date" class="form-control mb-2" id="end_date" name="end_date" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;">
+                                
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" id="is_end_fixed" name="is_end_fixed" checked>
+                                    <label class="form-check-label text-white-50 ms-2" for="is_end_fixed">Is End Date Fixed?</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <!-- Hotel Packages -->
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label class="form-label text-white d-flex justify-content-between align-items-center">
+                                    <span><i class="bi bi-building me-2 text-warning"></i>Hotel Packages</span>
+                                    <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2" id="add_hotel_pkg"><i class="bi bi-plus"></i></button>
+                                </label>
+                                <div id="hotel_packages_container">
+                                    <div class="input-group mb-2">
+                                        <input type="text" name="hotel_title[]" class="form-control" placeholder="Title (e.g. Basic)" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;" required>
+                                        <input type="number" name="hotel_price[]" class="form-control" placeholder="Price (₹)" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;" required>
+                                        <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+                                    </div>
+                                </div>
+                                <small class="text-white-50 mt-1 d-block"><i class="bi bi-info-circle me-1"></i>Add dynamic hotel options and pricing.</small>
+                            </div>
+                            
+                            <!-- Travel Packages -->
+                            <div class="col-md-6">
+                                <label class="form-label text-white d-flex justify-content-between align-items-center">
+                                    <span><i class="bi bi-car-front-fill me-2 text-warning"></i>Travel Packages</span>
+                                    <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2" id="add_travel_pkg"><i class="bi bi-plus"></i></button>
+                                </label>
+                                <div id="travel_packages_container">
+                                    <div class="input-group mb-2">
+                                        <input type="text" name="travel_title[]" class="form-control" placeholder="Title (e.g. Flight)" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;" required>
+                                        <input type="number" name="travel_price[]" class="form-control" placeholder="Price (₹)" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;" required>
+                                        <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+                                    </div>
+                                </div>
+                                <small class="text-white-50 mt-1 d-block"><i class="bi bi-info-circle me-1"></i>Add dynamic travel options and pricing.</small>
+                            </div>
+                        </div>
+
+                        <!-- Yatra Message -->
+                        <div class="mb-4">
+                            <label class="form-label text-white" for="yatra_message">
+                                <i class="bi bi-chat-left-dots me-2 text-warning"></i>Message for Passengers
+                            </label>
+                            <textarea class="form-control" id="yatra_message" name="yatra_message" rows="3" placeholder="Enter a message to show in the passenger dashboard" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;"></textarea>
+                            <small class="text-white-50 mt-1 d-block"><i class="bi bi-info-circle me-1"></i>This message will be shown to travelers when they select this yatra.</small>
+                        </div>
+
+                        <!-- Yatra Link -->
+                        <div class="mb-4">
+                            <label class="form-label text-white" for="yatra_link">
+                                <i class="bi bi-link-45deg me-2 text-warning"></i>External Link (Optional)
+                            </label>
+                            <input type="url" class="form-control" id="yatra_link" name="yatra_link" placeholder="https://example.com" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;">
+                            <small class="text-white-50 mt-1 d-block"><i class="bi bi-info-circle me-1"></i>A link to a YouTube video, PDF, or website for more details.</small>
+                        </div>
+
+                        <div class="d-grid mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg" style="background: linear-gradient(90deg, #ff512f, #dd2476); border: none; font-weight: 600;">
+                                <i class="bi bi-cloud-arrow-up-fill me-2"></i>Create New Yatra
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.getElementById('add_hotel_pkg').addEventListener('click', function() {
+        const container = document.getElementById('hotel_packages_container');
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2';
+        div.innerHTML = `
+            <input type="text" name="hotel_title[]" class="form-control" placeholder="Title" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;" required>
+            <input type="number" name="hotel_price[]" class="form-control" placeholder="Price (₹)" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;" required>
+            <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+        `;
+        container.appendChild(div);
+    });
+
+    document.getElementById('add_travel_pkg').addEventListener('click', function() {
+        const container = document.getElementById('travel_packages_container');
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2';
+        div.innerHTML = `
+            <input type="text" name="travel_title[]" class="form-control" placeholder="Title" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;" required>
+            <input type="number" name="travel_price[]" class="form-control" placeholder="Price (₹)" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white;" required>
+            <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+        `;
+        container.appendChild(div);
+    });
+</script>
+
+<style>
+    .form-control::placeholder {
+        color: rgba(255,255,255,0.4) !important;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background: rgba(0,0,0,0.5) !important;
+        color: white !important;
+        border-color: #ffc107 !important;
+        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25) !important;
+    }
+    
+    /* Ensure the color scheme works on date picker icons in webkit */
+    ::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+    }
+</style>
+{% endblock %}
